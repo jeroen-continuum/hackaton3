@@ -1,0 +1,32 @@
+Dus we focussen voor de SOR projecten verkoop op de mid market:
+
+- **ICP**
+- Local decision making
+    - A business buyer
+    - A COO, CFO or business-line director with a P&L problem.
+- Nederlandstalig: BE en NL
+- Mio omzet > M30€ & < M300€
+- Projectgrootte: Big enough for a €150-500k Build project
+- Positieve EDITA ref. project grootte ratio
+    - Projectwaarde < 5-10% van de jaarlijkse EBITDA
+- Groeibedrijf
+- Klein / geen IT-afdeling; < 20 FTE of sterk afhankelijk van externe partners
+
+- **Typische triggers**
+    - Snelle groei
+    - Fusies & overnames
+    - Internationalisering
+    - Manuele processen
+    - Margedruk
+    - Legacy apps/technical debt
+    - Customer experience revenu generators - top line
+    - Nood aan procesharmonisatie
+    - AI- of automatiseringsinitiatieven
+- Klanten en sectoren
+    - Finance and Insurance : KBC, Belfius, Fortis Paribas, AG
+    - Industry: Ravago, Atlas Copco, ...
+    - Prof Services: Partena, Securex, Liantis, ..
+    - Public: BOSA, OVAM, VO, ..
+    - Retail: Jumbo, Colruyt
+    - Logistiek: Essers
+    - Dit zijn vnl corporates, zie focus op middenmarkt en hoeft niet persé in deze sectoren te vallen, kan ook departementeel zijn.
