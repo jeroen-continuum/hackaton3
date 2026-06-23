@@ -1,0 +1,10 @@
+.back { color: #2563eb; text-decoration: none; font-size: 14px; }
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+.panel { border: 1px solid #e3e3e3; border-radius: 12px; padding: 16px; background: #fff; }
+.panel h2 { font-size: 16px; margin: 0 0 12px; }
+.subject { margin-bottom: 10px; font-size: 14px; }
+.body { white-space: pre-wrap; font-size: 14px; color: #333; line-height: 1.5; }
+.gate { margin-top: 12px; padding: 14px; background: #f4f7ff; border: 1px dashed #2563eb; border-radius: 8px; text-align: center; }
+.gate button { margin-top: 8px; padding: 8px 16px; background: #2563eb; color: #fff; border: none; border-radius: 8px; cursor: pointer; }
+.muted { color: #888; }
+@media (max-width: 720px) { .grid { grid-template-columns: 1fr; } }

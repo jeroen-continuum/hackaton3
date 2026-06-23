@@ -1,0 +1,26 @@
+@let a = asset();
+<a [routerLink]="['/company', id()]" class="back">← Company</a>
+@if (a) {
+  <div class="grid">
+    <section class="panel">
+      <h2>Outreach email</h2>
+      <div class="subject"><strong>Subject:</strong> {{ a.email_subject }}</div>
+      <p class="body">{{ a.email_body }}</p>
+    </section>
+
+    <section class="panel teaser">
+      <h2>{{ a.teaser_title }}</h2>
+      <p class="body">{{ a.teaser_preview }}</p>
+      @if (unlocked()) {
+        <p class="body">{{ a.teaser_full }}</p>
+      } @else {
+        <div class="gate">
+          <p>Leave contact details to unlock the full report.</p>
+          <button (click)="unlocked.set(true)">Unlock full report</button>
+        </div>
+      }
+    </section>
+  </div>
+} @else {
+  <p class="muted">Loading…</p>
+}

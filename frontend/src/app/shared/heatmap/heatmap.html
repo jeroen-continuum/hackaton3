@@ -1,0 +1,13 @@
+<div class="heatmap">
+  @for (row of rows; track row.label) {
+    <div class="row">
+      <span class="label">{{ row.label }}</span>
+      <div class="bar-track">
+        <div class="bar-fill"
+             [style.width.%]="row.value * 100"
+             [style.background]="color(row.value)"></div>
+      </div>
+      <span class="val">{{ (row.value * 100) | number:'1.0-0' }}</span>
+    </div>
+  }
+</div>

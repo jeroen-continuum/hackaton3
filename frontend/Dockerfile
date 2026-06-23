@@ -1,0 +1,11 @@
+# Build Angular, serve static via nginx
+FROM node:24-alpine AS build
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npx ng build
+
+FROM nginx:alpine
+COPY --from=build /app/dist/frontend/browser /usr/share/nginx/html
+EXPOSE 80

@@ -1,0 +1,27 @@
+<header class="page-head">
+  <h1>Rolling 10</h1>
+  <p>Top prospects by buyer intent &amp; impact. Contact one → the next rolls in.</p>
+</header>
+
+@if (loading()) {
+  <p class="muted">Loading…</p>
+} @else if (companies().length === 0) {
+  <p class="muted">No prospects. Run the pipeline or seed the database.</p>
+} @else {
+  <div class="cards">
+    @for (c of companies(); track c.id) {
+      <a class="card" [routerLink]="['/company', c.id]">
+        <div class="card-head">
+          <span class="rank">#{{ c.rank }}</span>
+          <div>
+            <h3>{{ c.name }}</h3>
+            <span class="sector">{{ c.sector }} · {{ c.region }}</span>
+          </div>
+          <span class="score">{{ (c.score * 100) | number:'1.0-0' }}</span>
+        </div>
+        <app-heatmap [breakdown]="c.breakdown" />
+        <button class="contact-btn" (click)="contact(c.id, $event)">Mark contacted</button>
+      </a>
+    }
+  </div>
+}

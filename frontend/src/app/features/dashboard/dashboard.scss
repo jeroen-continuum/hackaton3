@@ -1,0 +1,17 @@
+.page-head h1 { margin: 0 0 4px; }
+.page-head p { color: #666; margin: 0 0 20px; }
+.muted { color: #888; }
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 16px; }
+.card {
+  display: block; text-decoration: none; color: inherit;
+  border: 1px solid #e3e3e3; border-radius: 12px; padding: 16px;
+  background: #fff; transition: box-shadow .2s;
+}
+.card:hover { box-shadow: 0 4px 16px rgba(0,0,0,.08); }
+.card-head { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; margin-bottom: 14px; }
+.rank { font-weight: 700; color: #999; font-size: 18px; }
+.card-head h3 { margin: 0; font-size: 16px; }
+.sector { font-size: 12px; color: #888; }
+.score { font-size: 22px; font-weight: 700; color: #2563eb; }
+.contact-btn { margin-top: 14px; width: 100%; padding: 8px; border: 1px solid #2563eb; background: #fff; color: #2563eb; border-radius: 8px; cursor: pointer; }
+.contact-btn:hover { background: #2563eb; color: #fff; }

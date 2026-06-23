@@ -1,0 +1,55 @@
+@let c = company();
+@if (c) {
+  <a routerLink="/" class="back">← Rolling 10</a>
+  <header class="head">
+    <h1>{{ c.name }}</h1>
+    <span class="sub">{{ c.sector }} · NACE {{ c.nace_code }} · {{ c.region }} · {{ c.enterprise_number }}</span>
+  </header>
+
+  <div class="grid">
+    <section class="panel">
+      <h2>Why this company</h2>
+      @if (c.score) {
+        <app-heatmap [breakdown]="c.score.breakdown" />
+      }
+    </section>
+
+    <section class="panel">
+      <h2>Financials</h2>
+      @if (c.financials) {
+        <ul>
+          <li>Employees: {{ c.financials.employees }}</li>
+          <li>Revenue: €{{ c.financials.revenue }}</li>
+          <li>EBITDA: €{{ c.financials.ebitda }}</li>
+        </ul>
+      }
+    </section>
+
+    <section class="panel">
+      <h2>Buyer personas</h2>
+      <ul>
+        @for (p of c.contacts; track p.name) {
+          <li>{{ p.name }} — {{ p.title }} ({{ p.email }})</li>
+        }
+      </ul>
+    </section>
+
+    <section class="panel">
+      <h2>Signals</h2>
+      <h4>Open vacancies</h4>
+      <ul>
+        @for (v of c.vacancies; track v.title) {
+          <li>{{ v.title }} @if (v.is_it_role) { <strong>· IT</strong> }</li>
+        }
+      </ul>
+      @if (c.tech) {
+        <h4>Tech stack (legacy {{ c.tech.legacy_score }})</h4>
+        <p>{{ c.tech.technologies.join(', ') }}</p>
+      }
+    </section>
+  </div>
+
+  <a [routerLink]="['/company', c.id, 'outreach']" class="cta">View outreach →</a>
+} @else {
+  <p class="muted">Loading…</p>
+}
