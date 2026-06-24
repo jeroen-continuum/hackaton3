@@ -3,6 +3,7 @@
 Deliberately thin: all I/O is delegated to injected port adapters.
 The pipeline only applies business logic (signal extraction, ranking).
 """
+from app.application.signals import build_signals
 from app.domain.models import CompanyProfile, Financials, Signals, ScoreResult
 from app.domain.ports import (
     CompanySource, FinancialsProvider, FilterPolicy,
@@ -62,18 +63,8 @@ class RunPipeline:
         tech: dict | None,
         connections: list[dict],
     ) -> Signals:
-        """Derive normalised [0,1] signals from enrichment data.
-
-        Placeholder logic — Task 14 replaces this with proper signal extractors.
-        """
-        it_vac = sum(1 for v in vacancies if v.get("is_it_role")) if vacancies else 0
-        return Signals(
-            buyer_intent=min(1.0, it_vac / 3.0),
-            impact_potential=(tech or {}).get("legacy_score", 0.0) if tech else 0.0,
-            financial_fit=1.0 if fin and fin.ebitda and fin.ebitda > 1_500_000 else 0.0,
-            sector_fit=0.5,  # placeholder; Task 14 uses NACE lookup
-            warm_connection=min(1.0, len(connections) / 2.0) if connections else 0.0,
-        )
+        """Derive normalised [0,1] signals from enrichment data."""
+        return build_signals(profile, fin, vacancies, tech, connections)
 
     def _rank(self, scored: list[tuple[CompanyProfile, ScoreResult]]) -> list[CompanyProfile]:
         """Sort by total score descending, return top-10 profiles."""
