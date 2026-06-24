@@ -91,6 +91,12 @@ class FakeCompanyRepository:
     def get_top10(self) -> list[CompanyProfile]:
         return self._companies[:10]
 
+    def get_top10_with_scores(self) -> list[dict]:
+        return []
+
+    def get_by_enterprise_number(self, enterprise_number: str) -> CompanyProfile | None:
+        return next((c for c in self._companies if c.enterprise_number == enterprise_number), None)
+
     def assign_ranks(self) -> None:
         pass
 

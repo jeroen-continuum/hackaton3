@@ -9,5 +9,8 @@ class Rolling10:
     def get_top10(self) -> list:
         return self._repo.get_top10()
 
+    def get_top10_with_scores(self) -> list[dict]:
+        return self._repo.get_top10_with_scores()
+
     def mark_contacted(self, enterprise_number: str) -> None:
         self._repo.mark_contacted(enterprise_number)

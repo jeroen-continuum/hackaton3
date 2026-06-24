@@ -89,6 +89,47 @@ class SqlModelCompanyRepository:
             for c, _ in rows
         ]
 
+    def get_top10_with_scores(self) -> list[dict]:
+        """Rich top-10 view for the API layer — includes rank, score, breakdown."""
+        rows = self._session.exec(
+            select(_Company, _Score)
+            .join(_Score)
+            .where(_Score.contacted == False)  # noqa: E712
+            .order_by(_Score.rank)
+            .limit(10)
+        ).all()
+        return [
+            {
+                "id": c.id,
+                "enterprise_number": c.enterprise_number,
+                "name": c.name,
+                "sector": c.sector,
+                "region": c.region,
+                "nace_code": c.nace_code,
+                "website": c.website,
+                "rank": sc.rank,
+                "score": sc.total,
+                "breakdown": sc.breakdown,
+            }
+            for c, sc in rows
+        ]
+
+    def get_by_enterprise_number(self, enterprise_number: str) -> CompanyProfile | None:
+        """Fetch a single company domain object by enterprise number."""
+        company = self._session.exec(
+            select(_Company).where(_Company.enterprise_number == enterprise_number)
+        ).first()
+        if company is None:
+            return None
+        return CompanyProfile(
+            enterprise_number=company.enterprise_number,
+            name=company.name,
+            region=company.region,
+            nace_code=company.nace_code,
+            sector=company.sector,
+            website=company.website,
+        )
+
     def assign_ranks(self) -> None:
         """Establish rank order after a scoring run."""
         scores = self._session.exec(

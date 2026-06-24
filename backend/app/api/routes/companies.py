@@ -1,44 +1,26 @@
-"""Company read endpoints: the Rolling 10 list + per-company detail."""
+"""Company endpoints — delegates to Rolling10 application service."""
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
 
+from app.composition import build_container
 from app.db.session import get_session
-from app.models import Company, Score
+from app.models import Company as _C, Score as _S
 
 router = APIRouter(prefix="/companies", tags=["companies"])
 
 
 @router.get("/top10")
 def top10(session: Session = Depends(get_session)):
-    """Rolling 10: top non-contacted companies by score, rank order."""
-    stmt = (
-        select(Company, Score)
-        .join(Score)
-        .where(Score.contacted == False)  # noqa: E712
-        .order_by(Score.rank)
-        .limit(10)
-    )
-    rows = session.exec(stmt).all()
-    return [
-        {
-            "id": c.id,
-            "name": c.name,
-            "sector": c.sector,
-            "region": c.region,
-            "rank": sc.rank,
-            "score": sc.total,
-            "breakdown": sc.breakdown,
-        }
-        for c, sc in rows
-    ]
+    container = build_container(session)
+    return container.rolling10.get_top10_with_scores()
 
 
 @router.get("/{company_id}")
 def detail(company_id: int, session: Session = Depends(get_session)):
-    """Full company detail incl. score breakdown (heatmap) and enrichment."""
-    company = session.get(Company, company_id)
+    company = session.get(_C, company_id)
     if not company:
         raise HTTPException(404, "Company not found")
+    score = session.exec(select(_S).where(_S.company_id == company_id)).first()
     return {
         "id": company.id,
         "name": company.name,
@@ -47,9 +29,7 @@ def detail(company_id: int, session: Session = Depends(get_session)):
         "nace_code": company.nace_code,
         "region": company.region,
         "website": company.website,
-        "financials": company.financials,
-        "contacts": company.contacts,
-        "vacancies": company.vacancies,
-        "tech": company.tech,
-        "score": company.score,
+        "rank": score.rank if score else None,
+        "score": score.total if score else None,
+        "breakdown": score.breakdown if score else {},
     }
