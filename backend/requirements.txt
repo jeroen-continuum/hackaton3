@@ -8,3 +8,4 @@ anthropic>=0.40
 pandas>=2.2
 psycopg[binary]>=3.2
 pytest>=8.0
+respx>=0.22
