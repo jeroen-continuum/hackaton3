@@ -69,12 +69,12 @@ class SqlModelCompanyRepository:
         self._session.commit()
 
     def get_top10(self) -> list[CompanyProfile]:
-        """Return top 10 non-contacted companies ordered by total score (rank assigned in Task 16)."""
+        """Return top 10 non-contacted companies ordered by rank."""
         rows = self._session.exec(
             select(_Company, _Score)
             .join(_Score)
             .where(_Score.contacted == False)  # noqa: E712
-            .order_by(_Score.total.desc())
+            .order_by(_Score.rank)
             .limit(10)
         ).all()
         return [
@@ -88,3 +88,29 @@ class SqlModelCompanyRepository:
             )
             for c, _ in rows
         ]
+
+    def assign_ranks(self) -> None:
+        """Assign rank to all Score rows ordered by total desc."""
+        scores = self._session.exec(
+            select(_Score).order_by(_Score.total.desc())
+        ).all()
+        for i, score in enumerate(scores, start=1):
+            score.rank = i
+            self._session.add(score)
+        self._session.commit()
+
+    def mark_contacted(self, enterprise_number: str) -> None:
+        """Mark company as contacted; re-assigns all ranks."""
+        company = self._session.exec(
+            select(_Company).where(_Company.enterprise_number == enterprise_number)
+        ).first()
+        if company is None:
+            return
+        score = self._session.exec(
+            select(_Score).where(_Score.company_id == company.id)
+        ).first()
+        if score is not None:
+            score.contacted = True
+            self._session.add(score)
+            self._session.commit()
+        self.assign_ranks()

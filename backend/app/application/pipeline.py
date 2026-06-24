@@ -54,6 +54,7 @@ class RunPipeline:
             enriched_breakdown["_company_id"] = company_id
             self._repo.save_score(ScoreResult(total=result.total, breakdown=enriched_breakdown))
 
+        self._repo.assign_ranks()
         return self._repo.get_top10()
 
     def _extract_signals(

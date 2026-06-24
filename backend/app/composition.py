@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from app.application.pipeline import RunPipeline
 from app.application.scoring import Scorer
 from app.application.outreach import GenerateOutreach
+from app.application.rolling10 import Rolling10
 from app.adapters.scoring.weighted import WeightedScoringStrategy
 from app.adapters.filtering.icp_policy import IcpFilterPolicy
 from app.adapters.persistence.company_repo import SqlModelCompanyRepository
@@ -45,6 +46,7 @@ class Container:
     pipeline: RunPipeline
     scorer: Scorer
     outreach: GenerateOutreach
+    rolling10: Rolling10
 
 
 def build_container(session: Session) -> Container:
@@ -67,4 +69,5 @@ def build_container(session: Session) -> Container:
     outreach_gen = _LlmOutreachGenerator()
     outreach = GenerateOutreach(outreach_gen, repo)
 
-    return Container(pipeline=pipeline, scorer=scorer, outreach=outreach)
+    rolling10 = Rolling10(repo=repo)
+    return Container(pipeline=pipeline, scorer=scorer, outreach=outreach, rolling10=rolling10)
