@@ -58,6 +58,7 @@ class SqlModelCompanyRepository:
         if existing:
             existing.total = score.total
             existing.breakdown = breakdown
+            existing.contacted = False
             self._session.add(existing)
         else:
             db_score = _Score(

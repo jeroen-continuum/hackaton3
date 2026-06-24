@@ -16,25 +16,12 @@ from app.adapters.persistence.company_repo import SqlModelCompanyRepository
 from app.adapters.sources.kbo import KboSource as _KboSource
 from app.adapters.sources.nbb import NbbFinancialsProvider as _NbbProvider
 from app.adapters.sources.vdab import VdabVacancyProvider as _VdabProvider
-from app.connectors.kbo import KboConnector
-from app.connectors.nbb import NbbConnector
-from app.connectors.vdab import VdabConnector
 from app.adapters.sources.wappalyzer import WappalyzerTechProvider as _WappalyzerProvider
-from app.connectors.apollo import ApolloConnector
 from app.adapters.sources.connections import CsvConnectionProvider as _CsvConnectionProvider
 from app.adapters.outreach.llm_outreach import LlmOutreachGenerator as _LlmOutreachGenerator
 from app.adapters.sources.apollo import ApolloContactProvider
 
-from app.domain.models import CompanyProfile, Financials, ScoreResult
-from app.domain.ports import (
-    CompanySource, FinancialsProvider, VacancyProvider,
-    TechProvider, ConnectionProvider, OutreachGenerator,
-)
 from sqlmodel import Session
-
-
-# --- Stub adapters bridging existing connectors to domain ports ---
-# These will be replaced one-by-one in Tasks 09-13.
 
 
 @dataclass

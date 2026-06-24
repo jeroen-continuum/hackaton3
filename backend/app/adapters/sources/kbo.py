@@ -3,12 +3,11 @@
 Reads the weekly CSV dump from DATA_DIR/kbo/enterprise.csv.
 Filters: active, BE region, focus NACE prefixes, excludes blacklisted NACE prefixes.
 """
-import os
 from pathlib import Path
 import pandas as pd
 
 from app.core.config import settings
-from app.core.constants import FOCUS_NACE_PREFIXES, EXCLUDED_NACE_PREFIXES, REGIONS
+from app.core.constants import FOCUS_NACE_PREFIXES, EXCLUDED_NACE_PREFIXES
 from app.domain.models import CompanyProfile
 
 

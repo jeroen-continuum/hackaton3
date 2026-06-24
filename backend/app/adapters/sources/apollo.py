@@ -19,8 +19,8 @@ class ApolloContactProvider:
         try:
             resp = httpx.post(
                 self.BASE_URL,
+                headers={"X-Api-Key": api_key},
                 json={
-                    "api_key": api_key,
                     "q_organization_domains": enterprise_number,
                     "person_titles": ["CFO", "CEO", "CTO", "Director", "Head of"],
                     "per_page": 5,
