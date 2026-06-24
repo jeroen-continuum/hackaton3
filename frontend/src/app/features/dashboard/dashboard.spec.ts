@@ -24,7 +24,7 @@ describe('Dashboard', () => {
     fixture.detectChanges();
   });
 
-  it('creates the component', () => {
-    expect(fixture.componentInstance).toBeTruthy();
+  it('shows empty state when no companies', () => {
+    expect(fixture.nativeElement.textContent).toContain('No prospects');
   });
 });

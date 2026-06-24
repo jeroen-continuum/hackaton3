@@ -32,19 +32,22 @@ export class OutreachPage {
 
   generate() {
     this.generating.set(true);
-    this.api.generateOutreach(Number(this.id())).subscribe(() => {
-      this.api.outreach(Number(this.id())).subscribe((a) => {
-        this.asset.set(a);
-        this.generating.set(false);
-      });
+    this.api.generateOutreach(Number(this.id())).subscribe({
+      next: () => {
+        this.api.outreach(Number(this.id())).subscribe({
+          next: (a) => { this.asset.set(a); this.generating.set(false); },
+          error: () => this.generating.set(false),
+        });
+      },
+      error: () => this.generating.set(false),
     });
   }
 
   loadContacts() {
     this.loadingContacts.set(true);
-    this.api.getContacts(Number(this.id())).subscribe((r) => {
-      this.contacts.set(r.contacts);
-      this.loadingContacts.set(false);
+    this.api.getContacts(Number(this.id())).subscribe({
+      next: (r) => { this.contacts.set(r.contacts); this.loadingContacts.set(false); },
+      error: () => this.loadingContacts.set(false),
     });
   }
 
