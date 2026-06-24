@@ -11,6 +11,7 @@ from app.application.outreach import GenerateOutreach
 from app.adapters.scoring.weighted import WeightedScoringStrategy
 from app.adapters.filtering.icp_policy import IcpFilterPolicy
 from app.adapters.persistence.company_repo import SqlModelCompanyRepository
+from app.adapters.sources.kbo import KboSource as _KboSource
 
 # Source adapters are stubs until Task 09-13 implement real connectors.
 # Import from existing connectors as placeholder until replaced.
@@ -30,11 +31,6 @@ from sqlmodel import Session
 
 # --- Stub adapters bridging existing connectors to domain ports ---
 # These will be replaced one-by-one in Tasks 09-13.
-
-class _KboSource:
-    """Stub: returns empty pond until Task 09 wires up the real KBO CSV loader."""
-    def load_pond(self) -> list[CompanyProfile]:
-        return []
 
 class _NbbProvider:
     """Stub: returns None until Task 10 wires up the real NBB API."""
