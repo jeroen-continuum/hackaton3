@@ -90,7 +90,7 @@ class SqlModelCompanyRepository:
         ]
 
     def assign_ranks(self) -> None:
-        """Assign rank to all Score rows ordered by total desc."""
+        """Establish rank order after a scoring run."""
         scores = self._session.exec(
             select(_Score).order_by(_Score.total.desc())
         ).all()
@@ -100,7 +100,7 @@ class SqlModelCompanyRepository:
         self._session.commit()
 
     def mark_contacted(self, enterprise_number: str) -> None:
-        """Mark company as contacted; re-assigns all ranks."""
+        """Record that outreach was sent; rolls the next-ranked company in."""
         company = self._session.exec(
             select(_Company).where(_Company.enterprise_number == enterprise_number)
         ).first()
@@ -109,8 +109,9 @@ class SqlModelCompanyRepository:
         score = self._session.exec(
             select(_Score).where(_Score.company_id == company.id)
         ).first()
-        if score is not None:
-            score.contacted = True
-            self._session.add(score)
-            self._session.commit()
+        if score is None:
+            return
+        score.contacted = True
+        self._session.add(score)
+        self._session.commit()
         self.assign_ranks()

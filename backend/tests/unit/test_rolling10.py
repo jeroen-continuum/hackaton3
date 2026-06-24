@@ -1,7 +1,7 @@
 """Unit tests for Rolling10 application service."""
 import pytest
 from app.application.rolling10 import Rolling10
-from app.domain.models import CompanyProfile, ScoreResult
+from app.domain.models import CompanyProfile
 
 
 def test_get_top10_delegates_to_repo(fake_company_repository):

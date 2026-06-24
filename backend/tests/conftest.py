@@ -92,10 +92,10 @@ class FakeCompanyRepository:
         return self._companies[:10]
 
     def assign_ranks(self) -> None:
-        pass  # ranks not needed in unit tests
+        pass
 
     def mark_contacted(self, enterprise_number: str) -> None:
-        pass  # no-op for unit tests
+        pass
 
 
 # Pytest fixtures
