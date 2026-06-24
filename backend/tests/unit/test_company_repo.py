@@ -70,6 +70,31 @@ def test_save_score_without_company_id_raises(repo):
         repo.save_score(score)
 
 
-def test_get_top10_returns_list(repo):
+def test_get_top10_returns_non_contacted_companies(repo, session, profile):
+    # Seed a company
+    repo.save_company(profile)
+    from app.models.entities import Company, Score
+    from sqlmodel import select
+    company = session.exec(select(Company).where(Company.enterprise_number == profile.enterprise_number)).first()
+    # Seed a score with rank=1, contacted=False
+    db_score = Score(company_id=company.id, total=0.8, rank=1, contacted=False, breakdown={"buyer_intent": 0.8})
+    session.add(db_score)
+    session.commit()
+    # get_top10 should return the company
     result = repo.get_top10()
     assert isinstance(result, list)
+    assert len(result) == 1
+    assert result[0].enterprise_number == profile.enterprise_number
+
+
+def test_get_top10_excludes_contacted(repo, session, profile):
+    # Seed a company with contacted=True
+    repo.save_company(profile)
+    from app.models.entities import Company, Score
+    from sqlmodel import select
+    company = session.exec(select(Company).where(Company.enterprise_number == profile.enterprise_number)).first()
+    db_score = Score(company_id=company.id, total=0.8, rank=1, contacted=True, breakdown={})
+    session.add(db_score)
+    session.commit()
+    result = repo.get_top10()
+    assert result == []
