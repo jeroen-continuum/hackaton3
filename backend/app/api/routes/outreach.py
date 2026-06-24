@@ -4,6 +4,7 @@ from sqlmodel import Session, select
 
 from app.composition import build_container
 from app.db.session import get_session
+from app.domain.models import CompanyProfile
 from app.models import Company as _C, OutreachAsset as _OA
 
 router = APIRouter(prefix="/companies", tags=["outreach"])
@@ -30,7 +31,6 @@ def generate_outreach(company_id: int, session: Session = Depends(get_session)):
     container = build_container(session)
     sector = company.sector or "general"
     cases = container.solution_cases.by_sector(sector)
-    from app.domain.models import CompanyProfile
     profile = CompanyProfile(
         enterprise_number=company.enterprise_number,
         name=company.name,
@@ -41,7 +41,6 @@ def generate_outreach(company_id: int, session: Session = Depends(get_session)):
     )
     email_result = container.outreach.email(profile, cases)
     teaser_result = container.outreach.teaser(profile, cases)
-    # Persist to OutreachAsset
     existing = session.exec(select(_OA).where(_OA.company_id == company_id)).first()
     if existing:
         existing.email_subject = email_result["subject"]
