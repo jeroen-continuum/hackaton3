@@ -38,7 +38,6 @@ def session():
         yield s
 
 
-# Import fakes from conftest by re-defining inline (conftest fakes not importable directly)
 class _FakeSource:
     def __init__(self, companies):
         self._companies = companies
