@@ -44,7 +44,14 @@ class FakeContactProvider:
 # Port: ScoringStrategy
 class FakeScoringStrategy:
     def score(self, signals: Signals) -> ScoreResult:
-        return ScoreResult(total=0.5, breakdown={})
+        breakdown = {
+            "buyer_intent": signals.buyer_intent,
+            "impact_potential": signals.impact_potential,
+            "financial_fit": signals.financial_fit,
+            "sector_fit": signals.sector_fit,
+            "warm_connection": signals.warm_connection,
+        }
+        return ScoreResult(total=0.5, breakdown=breakdown)
 
 
 # Port: FilterPolicy
