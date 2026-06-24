@@ -51,7 +51,6 @@ class SqlModelCompanyRepository:
         company_id = score.breakdown.get("_company_id")
         if company_id is None:
             raise ValueError("ScoreResult.breakdown must contain '_company_id' key")
-        # Build a clean breakdown without the internal key
         breakdown = {k: v for k, v in score.breakdown.items() if k != "_company_id"}
         existing = self._session.exec(
             select(_Score).where(_Score.company_id == company_id)

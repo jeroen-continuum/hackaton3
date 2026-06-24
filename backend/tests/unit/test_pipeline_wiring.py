@@ -1,7 +1,6 @@
 """Unit tests for pipeline wiring: save_score, company_id, repo.get_top10()."""
-import pytest
 from app.application.pipeline import RunPipeline
-from app.domain.models import CompanyProfile, Financials, ScoreResult
+from app.domain.models import CompanyProfile
 
 
 def _make_pipeline(source, repo, scorer=None, filter_policy=None, financials=None):
@@ -25,7 +24,6 @@ def test_pipeline_run_returns_list(fake_company_source, fake_company_repository)
     fake_company_source._companies = [
         CompanyProfile(enterprise_number="0001", name="Acme")
     ]
-    fake_company_source.load_pond = lambda: fake_company_source._companies
     pipeline = _make_pipeline(fake_company_source, fake_company_repository)
     result = pipeline.run()
     assert isinstance(result, list)
