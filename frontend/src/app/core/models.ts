@@ -38,3 +38,9 @@ export interface OutreachAsset {
   teaser_preview: string;
   teaser_full: string;
 }
+
+export interface Contact {
+  name: string;
+  title: string;
+  email: string;
+}

@@ -1,18 +1,33 @@
-@let a = asset();
 <a [routerLink]="['/company', id()]" class="back">← Company</a>
+
+<div class="actions">
+  <button (click)="generate()" [disabled]="generating()">
+    @if (generating()) { Generating… } @else { Generate AI draft }
+  </button>
+</div>
+
+@let a = asset();
 @if (a) {
   <div class="grid">
     <section class="panel">
       <h2>Outreach email</h2>
       <div class="subject"><strong>Subject:</strong> {{ a.email_subject }}</div>
       <p class="body">{{ a.email_body }}</p>
+
+      @if (!sent()) {
+        <button class="send-gate" (click)="markSent()">
+          ✓ Mark as sent (human verifies &amp; sends)
+        </button>
+      } @else {
+        <p class="sent-confirm">Marked as contacted. This company rolls out of the Rolling 10.</p>
+      }
     </section>
 
     <section class="panel teaser">
       <h2>{{ a.teaser_title }}</h2>
       <p class="body">{{ a.teaser_preview }}</p>
       @if (unlocked()) {
-        <p class="body">{{ a.teaser_full }}</p>
+        <p class="body full">{{ a.teaser_full }}</p>
       } @else {
         <div class="gate">
           <p>Leave contact details to unlock the full report.</p>
@@ -21,6 +36,22 @@
       }
     </section>
   </div>
+
+  <section class="panel contacts">
+    <h2>Buyer personas</h2>
+    @if (contacts().length === 0) {
+      <button (click)="loadContacts()" [disabled]="loadingContacts()">
+        @if (loadingContacts()) { Loading… } @else { Look up contacts }
+      </button>
+    } @else {
+      <ul>
+        @for (c of contacts(); track c.name) {
+          <li>{{ c.name }} — {{ c.title }}</li>
+        }
+      </ul>
+      <small class="pii-note">Contacts shown in-browser only. Not stored.</small>
+    }
+  </section>
 } @else {
-  <p class="muted">Loading…</p>
+  <p class="muted">No draft yet. Click "Generate AI draft" above.</p>
 }

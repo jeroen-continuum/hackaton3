@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-import { CompanyListItem, CompanyDetail, OutreachAsset } from './models';
+import { CompanyListItem, CompanyDetail, OutreachAsset, Contact } from './models';
 
 const BASE = 'http://localhost:8000';
 
@@ -23,6 +23,18 @@ export class ApiService {
   }
 
   markContacted(id: number): Observable<unknown> {
-    return this.http.post(`${BASE}/scoring/${id}/contacted`, {});
+    return this.http.post(`${BASE}/companies/${id}/mark-contacted`, {});
+  }
+
+  generateOutreach(id: number): Observable<{ status: string; company_id: number }> {
+    return this.http.post<{ status: string; company_id: number }>(
+      `${BASE}/companies/${id}/outreach/generate`, {}
+    );
+  }
+
+  getContacts(id: number): Observable<{ contacts: Contact[]; persisted: boolean }> {
+    return this.http.get<{ contacts: Contact[]; persisted: boolean }>(
+      `${BASE}/companies/${id}/contacts`
+    );
   }
 }
