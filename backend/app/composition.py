@@ -23,6 +23,7 @@ from app.adapters.sources.wappalyzer import WappalyzerTechProvider as _Wappalyze
 from app.connectors.apollo import ApolloConnector
 from app.adapters.sources.connections import CsvConnectionProvider as _CsvConnectionProvider
 from app.adapters.outreach.llm_outreach import LlmOutreachGenerator as _LlmOutreachGenerator
+from app.adapters.sources.apollo import ApolloContactProvider
 
 from app.domain.models import CompanyProfile, Financials, ScoreResult
 from app.domain.ports import (
@@ -43,6 +44,7 @@ class Container:
     outreach: GenerateOutreach
     rolling10: Rolling10
     solution_cases: SolutionCaseRepository
+    contacts: ApolloContactProvider
 
 
 def build_container(session: Session) -> Container:
@@ -67,10 +69,12 @@ def build_container(session: Session) -> Container:
 
     rolling10 = Rolling10(repo=repo)
     solution_cases = SolutionCaseRepository(session=session)
+    contacts = ApolloContactProvider()
     return Container(
         pipeline=pipeline,
         scorer=scorer,
         outreach=outreach,
         rolling10=rolling10,
         solution_cases=solution_cases,
+        contacts=contacts,
     )
