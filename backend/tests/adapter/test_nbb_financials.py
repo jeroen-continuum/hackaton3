@@ -21,10 +21,8 @@ SAMPLE_RESPONSE = {
 
 
 @pytest.fixture
-def provider(tmp_path):
-    p = NbbFinancialsProvider()
-    p._data_dir = str(tmp_path)
-    return p
+def provider():
+    return NbbFinancialsProvider()
 
 
 def test_nbb_provider_satisfies_protocol(provider):

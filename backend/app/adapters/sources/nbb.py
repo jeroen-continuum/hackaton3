@@ -40,10 +40,8 @@ class NbbFinancialsProvider(CachedConnector):
         return financials
 
     def _parse(self, data: dict) -> Financials | None:
-        """Extract employees + EBITDA from NBB XBRL response."""
+        # XBRL social balance: 9087=FTE, 9901=operating result (proxy for EBITDA)
         accounts = data.get("annualAccounts") or data.get("accounts") or []
-        if not accounts:
-            accounts = [data]
 
         employees = None
         ebitda = None
@@ -60,7 +58,7 @@ class NbbFinancialsProvider(CachedConnector):
             rubrics = account.get("rubrics") or account.get("items") or []
             for rubric in rubrics:
                 code = str(rubric.get("code", "") or "").strip()
-                value = rubric.get("value") or rubric.get("amount")
+                value = rubric.get("value") if "value" in rubric else rubric.get("amount")
                 try:
                     value = float(value) if value is not None else None
                 except (TypeError, ValueError):
