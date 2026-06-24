@@ -6,9 +6,12 @@ from app.domain.models import CompanyProfile, Financials, Signals, ScoreResult, 
 
 # Port: CompanySource
 class FakeCompanySource:
+    def __init__(self):
+        self._companies = []
+
     def load_pond(self) -> list[CompanyProfile]:
         """Returns list of CompanyProfile-like dicts or objects."""
-        return []
+        return self._companies
 
 
 # Port: FinancialsProvider
@@ -74,9 +77,13 @@ class FakeCompanyRepository:
     def __init__(self):
         self._companies = []
         self._scores = []
+        self._id_counter = 1
 
-    def save_company(self, company: CompanyProfile) -> None:
+    def save_company(self, company: CompanyProfile) -> int | None:
         self._companies.append(company)
+        fake_id = self._id_counter
+        self._id_counter += 1
+        return fake_id
 
     def save_score(self, score: ScoreResult) -> None:
         self._scores.append(score)

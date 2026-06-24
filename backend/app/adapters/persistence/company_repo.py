@@ -16,8 +16,8 @@ class SqlModelCompanyRepository:
     def __init__(self, session: Session) -> None:
         self._session = session
 
-    def save_company(self, profile: CompanyProfile) -> None:
-        """Upsert a company (insert or update by enterprise_number)."""
+    def save_company(self, profile: CompanyProfile) -> int | None:
+        """Upsert a company (insert or update by enterprise_number). Returns DB id."""
         existing = self._session.exec(
             select(_Company).where(_Company.enterprise_number == profile.enterprise_number)
         ).first()
@@ -39,6 +39,12 @@ class SqlModelCompanyRepository:
             )
             self._session.add(company)
         self._session.commit()
+        if existing:
+            self._session.refresh(existing)
+            return existing.id
+        else:
+            self._session.refresh(company)
+            return company.id
 
     def save_score(self, score: ScoreResult) -> None:
         """Persist a score result — requires company_id in score.breakdown['_company_id']."""
@@ -64,12 +70,12 @@ class SqlModelCompanyRepository:
         self._session.commit()
 
     def get_top10(self) -> list[CompanyProfile]:
-        """Return top 10 non-contacted companies ordered by score rank."""
+        """Return top 10 non-contacted companies ordered by total score (rank assigned in Task 16)."""
         rows = self._session.exec(
             select(_Company, _Score)
             .join(_Score)
             .where(_Score.contacted == False)  # noqa: E712
-            .order_by(_Score.rank)
+            .order_by(_Score.total.desc())
             .limit(10)
         ).all()
         return [

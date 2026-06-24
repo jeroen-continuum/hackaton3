@@ -43,17 +43,18 @@ class RunPipeline:
             if decision.passes:
                 passing.append((profile, fin))
 
-        scored = []
         for profile, fin in passing:
             vacancies = self._vacancies.fetch(profile.enterprise_number)
             tech = self._tech.fetch(profile.website or "")
             connections = self._connections.shared(profile.enterprise_number)
             signals = self._extract_signals(profile, fin, vacancies, tech, connections)
             result = self._scorer.score(signals)
-            self._repo.save_company(profile)
-            scored.append((profile, result))
+            company_id = self._repo.save_company(profile)
+            enriched_breakdown = dict(result.breakdown)
+            enriched_breakdown["_company_id"] = company_id
+            self._repo.save_score(ScoreResult(total=result.total, breakdown=enriched_breakdown))
 
-        return self._rank(scored)
+        return self._repo.get_top10()
 
     def _extract_signals(
         self,
@@ -66,7 +67,3 @@ class RunPipeline:
         """Derive normalised [0,1] signals from enrichment data."""
         return build_signals(profile, fin, vacancies, tech, connections)
 
-    def _rank(self, scored: list[tuple[CompanyProfile, ScoreResult]]) -> list[CompanyProfile]:
-        """Sort by total score descending, return top-10 profiles."""
-        ordered = sorted(scored, key=lambda x: x[1].total, reverse=True)
-        return [profile for profile, _ in ordered[:10]]
