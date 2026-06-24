@@ -9,6 +9,7 @@ from app.application.pipeline import RunPipeline
 from app.application.scoring import Scorer
 from app.application.outreach import GenerateOutreach
 from app.application.rolling10 import Rolling10
+from app.application.solution_cases import SolutionCaseRepository
 from app.adapters.scoring.weighted import WeightedScoringStrategy
 from app.adapters.filtering.icp_policy import IcpFilterPolicy
 from app.adapters.persistence.company_repo import SqlModelCompanyRepository
@@ -47,6 +48,7 @@ class Container:
     scorer: Scorer
     outreach: GenerateOutreach
     rolling10: Rolling10
+    solution_cases: SolutionCaseRepository
 
 
 def build_container(session: Session) -> Container:
@@ -70,4 +72,11 @@ def build_container(session: Session) -> Container:
     outreach = GenerateOutreach(outreach_gen, repo)
 
     rolling10 = Rolling10(repo=repo)
-    return Container(pipeline=pipeline, scorer=scorer, outreach=outreach, rolling10=rolling10)
+    solution_cases = SolutionCaseRepository(session=session)
+    return Container(
+        pipeline=pipeline,
+        scorer=scorer,
+        outreach=outreach,
+        rolling10=rolling10,
+        solution_cases=solution_cases,
+    )

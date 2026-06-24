@@ -7,12 +7,14 @@ use `python -m app.db.seed` to demo the stack end-to-end.
 from sqlmodel import Session
 
 from app.db.session import engine, init_db
+from app.db.seed import seed_solution_cases
 from app.composition import build_container
 
 
 def run() -> None:
     init_db()
     with Session(engine) as session:
+        seed_solution_cases(session)
         container = build_container(session)
         print("Running pipeline (ingest → filter → enrich → score → rank)...")
         top10 = container.pipeline.run()

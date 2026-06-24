@@ -12,16 +12,62 @@ from app.models import (
 )
 
 SOLUTION_CASES = [
-    SolutionCase(sector="Finance", title="Claims triage automation",
-                 summary="AI-assisted document intake cut manual handling.",
-                 impact_metric="-30% manual work"),
-    SolutionCase(sector="Professional Services", title="Proposal generation copilot",
-                 summary="Generative drafting of client proposals from templates.",
-                 impact_metric="+18% throughput"),
-    SolutionCase(sector="Industry", title="Predictive maintenance",
-                 summary="Sensor data models predicting line downtime.",
-                 impact_metric="-22% downtime"),
+    SolutionCase(
+        sector="financial_services",
+        title="AI-driven credit risk scoring at mid-market bank",
+        summary="Replaced manual spreadsheet scoring with ML model reducing decision time from 3 days to 4 hours while improving accuracy by 22%.",
+        impact_metric="-85% decision time, +22% accuracy",
+    ),
+    SolutionCase(
+        sector="financial_services",
+        title="Automated regulatory reporting for insurance firm",
+        summary="Built XBRL/Solvency II reporting pipeline eliminating 40 FTE-hours per quarter of manual data assembly.",
+        impact_metric="-40 FTE-hours/quarter",
+    ),
+    SolutionCase(
+        sector="professional_services",
+        title="Intelligent contract analysis for legal firm",
+        summary="LLM-powered contract review cutting review time by 60% and flagging non-standard clauses automatically.",
+        impact_metric="-60% review time",
+    ),
+    SolutionCase(
+        sector="professional_services",
+        title="Knowledge management platform for consulting firm",
+        summary="RAG-based internal search over 15 years of project deliverables, reducing research time by 70%.",
+        impact_metric="-70% research time",
+    ),
+    SolutionCase(
+        sector="logistics",
+        title="Predictive maintenance for fleet operator",
+        summary="IoT + ML model predicting truck breakdowns 72 hours ahead, reducing unplanned downtime by 35%.",
+        impact_metric="-35% unplanned downtime",
+    ),
+    SolutionCase(
+        sector="manufacturing",
+        title="AI quality control for food manufacturer",
+        summary="Computer vision defect detection on production line achieving 99.2% accuracy vs 94% manual inspection.",
+        impact_metric="+5.2pp quality rate",
+    ),
 ]
+
+
+def seed_solution_cases(session: Session) -> None:
+    """Seed WiiPlus solution reference cases for LLM outreach grounding."""
+    for case_data in SOLUTION_CASES:
+        existing = session.exec(
+            select(SolutionCase)
+            .where(SolutionCase.sector == case_data.sector)
+            .where(SolutionCase.title == case_data.title)
+        ).first()
+        if existing is None:
+            case = SolutionCase(
+                sector=case_data.sector,
+                title=case_data.title,
+                summary=case_data.summary,
+                impact_metric=case_data.impact_metric,
+            )
+            session.add(case)
+    session.commit()
 
 
 def seed() -> None:
