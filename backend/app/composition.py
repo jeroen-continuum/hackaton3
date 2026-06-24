@@ -14,9 +14,6 @@ from app.adapters.persistence.company_repo import SqlModelCompanyRepository
 from app.adapters.sources.kbo import KboSource as _KboSource
 from app.adapters.sources.nbb import NbbFinancialsProvider as _NbbProvider
 from app.adapters.sources.vdab import VdabVacancyProvider as _VdabProvider
-
-# Source adapters are stubs until Task 09-13 implement real connectors.
-# Import from existing connectors as placeholder until replaced.
 from app.connectors.kbo import KboConnector
 from app.connectors.nbb import NbbConnector
 from app.connectors.vdab import VdabConnector

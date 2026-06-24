@@ -63,5 +63,4 @@ def test_compute_legacy_score_sap_and_jquery():
         {"name": "jQuery", "categories": []},
     ]
     score = _compute_legacy_score(technologies)
-    # "sap" in names → hit; "jquery" in names → hit; 2 hits → min(1.0, 2/3) ≈ 0.667
     assert score == pytest.approx(2 / 3)
