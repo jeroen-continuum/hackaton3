@@ -19,6 +19,7 @@ from app.connectors.nbb import NbbConnector
 from app.connectors.vdab import VdabConnector
 from app.adapters.sources.wappalyzer import WappalyzerTechProvider as _WappalyzerProvider
 from app.connectors.apollo import ApolloConnector
+from app.adapters.sources.connections import CsvConnectionProvider as _CsvConnectionProvider
 
 from app.domain.models import CompanyProfile, Financials, ScoreResult
 from app.domain.ports import (
@@ -30,11 +31,6 @@ from sqlmodel import Session
 
 # --- Stub adapters bridging existing connectors to domain ports ---
 # These will be replaced one-by-one in Tasks 09-13.
-
-class _CsvConnectionProvider:
-    """Stub: returns empty list until Task 13 wires up warm-connections CSV."""
-    def shared(self, enterprise_number: str) -> list[dict]:
-        return []
 
 class _LlmOutreachGenerator:
     """Stub: returns empty dicts until Tasks 18-19 wire up LLM adapters."""
