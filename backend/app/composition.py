@@ -13,6 +13,7 @@ from app.adapters.filtering.icp_policy import IcpFilterPolicy
 from app.adapters.persistence.company_repo import SqlModelCompanyRepository
 from app.adapters.sources.kbo import KboSource as _KboSource
 from app.adapters.sources.nbb import NbbFinancialsProvider as _NbbProvider
+from app.adapters.sources.vdab import VdabVacancyProvider as _VdabProvider
 
 # Source adapters are stubs until Task 09-13 implement real connectors.
 # Import from existing connectors as placeholder until replaced.
@@ -32,11 +33,6 @@ from sqlmodel import Session
 
 # --- Stub adapters bridging existing connectors to domain ports ---
 # These will be replaced one-by-one in Tasks 09-13.
-
-class _VdabProvider:
-    """Stub: returns empty list until Task 11 wires up VDAB API."""
-    def fetch(self, enterprise_number: str) -> list[dict]:
-        return []
 
 class _WappalyzerProvider:
     """Stub: returns None until Task 12 wires up Wappalyzer API."""
