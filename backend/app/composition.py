@@ -22,6 +22,7 @@ from app.connectors.vdab import VdabConnector
 from app.adapters.sources.wappalyzer import WappalyzerTechProvider as _WappalyzerProvider
 from app.connectors.apollo import ApolloConnector
 from app.adapters.sources.connections import CsvConnectionProvider as _CsvConnectionProvider
+from app.adapters.outreach.llm_outreach import LlmOutreachGenerator as _LlmOutreachGenerator
 
 from app.domain.models import CompanyProfile, Financials, ScoreResult
 from app.domain.ports import (
@@ -33,13 +34,6 @@ from sqlmodel import Session
 
 # --- Stub adapters bridging existing connectors to domain ports ---
 # These will be replaced one-by-one in Tasks 09-13.
-
-class _LlmOutreachGenerator:
-    """Stub: returns empty dicts until Tasks 18-19 wire up LLM adapters."""
-    def email(self, company: CompanyProfile, cases: list[dict]) -> dict:
-        return {"subject": "", "body": ""}
-    def teaser(self, company: CompanyProfile, cases: list[dict]) -> dict:
-        return {"title": "", "preview": "", "full": ""}
 
 
 @dataclass
