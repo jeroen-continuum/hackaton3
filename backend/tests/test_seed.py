@@ -42,3 +42,9 @@ def test_demo_companies_nace_focus():
     FOCUS = ("64", "65", "66", "69", "70", "78")
     for c in DEMO_COMPANIES:
         assert c["nace_code"][:2] in FOCUS, f"{c['name']} has non-focus NACE {c['nace_code']}"
+
+
+def test_demo_scores_contacted_false():
+    from app.db.seed import DEMO_SCORES
+    for s in DEMO_SCORES:
+        assert s.get("contacted", False) is False

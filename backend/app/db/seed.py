@@ -112,6 +112,7 @@ def seed() -> None:
                 total=score_data["total"],
                 rank=score_data["rank"],
                 breakdown=score_data["breakdown"],
+                contacted=False,
             ))
         s.commit()
         print(f"Seeded {len(DEMO_COMPANIES)} demo companies + solution cases.")
