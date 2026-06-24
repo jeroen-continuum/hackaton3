@@ -20,7 +20,7 @@ from app.adapters.sources.vdab import VdabVacancyProvider as _VdabProvider
 from app.connectors.kbo import KboConnector
 from app.connectors.nbb import NbbConnector
 from app.connectors.vdab import VdabConnector
-from app.connectors.wappalyzer import WappalyzerConnector
+from app.adapters.sources.wappalyzer import WappalyzerTechProvider as _WappalyzerProvider
 from app.connectors.apollo import ApolloConnector
 
 from app.domain.models import CompanyProfile, Financials, ScoreResult
@@ -33,11 +33,6 @@ from sqlmodel import Session
 
 # --- Stub adapters bridging existing connectors to domain ports ---
 # These will be replaced one-by-one in Tasks 09-13.
-
-class _WappalyzerProvider:
-    """Stub: returns None until Task 12 wires up Wappalyzer API."""
-    def fetch(self, domain: str) -> dict | None:
-        return None
 
 class _CsvConnectionProvider:
     """Stub: returns empty list until Task 13 wires up warm-connections CSV."""
