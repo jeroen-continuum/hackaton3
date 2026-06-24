@@ -1,18 +1,19 @@
 """Pytest configuration and fake adapters for domain ports."""
 
 import pytest
+from app.domain.models import CompanyProfile, Financials, Signals, ScoreResult, Decision
 
 
 # Port: CompanySource
 class FakeCompanySource:
-    def load_pond(self) -> list:
+    def load_pond(self) -> list[CompanyProfile]:
         """Returns list of CompanyProfile-like dicts or objects."""
         return []
 
 
 # Port: FinancialsProvider
 class FakeFinancialsProvider:
-    def fetch(self, enterprise_number: str) -> dict | None:
+    def fetch(self, enterprise_number: str) -> Financials | None:
         return None
 
 
@@ -42,22 +43,22 @@ class FakeContactProvider:
 
 # Port: ScoringStrategy
 class FakeScoringStrategy:
-    def score(self, signals: dict) -> dict:
-        return {"total": 0.5, "breakdown": signals}
+    def score(self, signals: Signals) -> ScoreResult:
+        return ScoreResult(total=0.5, breakdown={})
 
 
 # Port: FilterPolicy
 class FakeFilterPolicy:
-    def evaluate(self, profile: dict, financials: dict | None) -> dict:
-        return {"passes": True, "reason": None}
+    def evaluate(self, profile: CompanyProfile, financials: Financials | None) -> Decision:
+        return Decision(passes=True, reason=None)
 
 
 # Port: OutreachGenerator
 class FakeOutreachGenerator:
-    def email(self, company: dict, cases: list) -> dict:
+    def email(self, company: CompanyProfile, cases: list[dict]) -> dict:
         return {"subject": "Test", "body": "Test body"}
 
-    def teaser(self, company: dict, cases: list) -> dict:
+    def teaser(self, company: CompanyProfile, cases: list[dict]) -> dict:
         return {"title": "Test", "preview": "Preview", "full": "Full content"}
 
 
@@ -67,13 +68,13 @@ class FakeCompanyRepository:
         self._companies = []
         self._scores = []
 
-    def save_company(self, company) -> None:
+    def save_company(self, company: CompanyProfile) -> None:
         self._companies.append(company)
 
-    def save_score(self, score) -> None:
+    def save_score(self, score: ScoreResult) -> None:
         self._scores.append(score)
 
-    def get_top10(self) -> list:
+    def get_top10(self) -> list[CompanyProfile]:
         return self._companies[:10]
 
 
