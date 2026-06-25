@@ -11,7 +11,7 @@ import {
 } from '@angular/core';
 import * as L from 'leaflet';
 
-import { Area, CompanyListItem } from '../../../core/models';
+import { Area, CompanyListItem, DensityPoint } from '../../../core/models';
 
 /**
  * Interactive area picker + result map.
@@ -29,6 +29,8 @@ import { Area, CompanyListItem } from '../../../core/models';
 export class ProspectMap implements AfterViewInit, OnDestroy {
   /** Companies to plot (the current Rolling 10). */
   companies = input<CompanyListItem[]>([]);
+  /** Every geocoded company location + count, for the country-wide density layer. */
+  density = input<DensityPoint[]>([]);
   /** Initial map center (Belgium centroid from the backend defaults). */
   defaultCenter = input<{ lat: number; lon: number }>({ lat: 50.8503, lon: 4.3517 });
   /** Emitted when the chosen area changes (null = area filter off). */
@@ -38,11 +40,15 @@ export class ProspectMap implements AfterViewInit, OnDestroy {
 
   /** Radius in km; 0 means the area filter is disabled. */
   radiusKm = signal(0);
+  /** Whether the country-wide density layer is shown. */
+  showDensity = signal(true);
 
   private map?: L.Map;
   private center!: L.LatLng;
   private centerMarker?: L.Marker;
   private circle?: L.Circle;
+  // Density added first so the Rolling-10 pins always render on top.
+  private dots = L.layerGroup();
   private pins = L.layerGroup();
 
   constructor() {
@@ -50,6 +56,12 @@ export class ProspectMap implements AfterViewInit, OnDestroy {
     effect(() => {
       const items = this.companies();
       if (this.map) this.renderPins(items);
+    });
+    // Redraw the density layer when its data or the toggle changes.
+    effect(() => {
+      const points = this.density();
+      const show = this.showDensity();
+      if (this.map) this.renderDensity(show ? points : []);
     });
   }
 
@@ -76,7 +88,9 @@ export class ProspectMap implements AfterViewInit, OnDestroy {
       this.emitArea();
     });
 
+    this.dots.addTo(this.map);
     this.pins.addTo(this.map);
+    this.renderDensity(this.showDensity() ? this.density() : []);
     this.renderPins(this.companies());
   }
 
@@ -89,6 +103,11 @@ export class ProspectMap implements AfterViewInit, OnDestroy {
     this.radiusKm.set(km);
     this.updateCircle();
     this.emitArea();
+  }
+
+  /** Toggle the country-wide density layer. */
+  setShowDensity(show: boolean) {
+    this.showDensity.set(show);
   }
 
   private onCenterMoved(latlng: L.LatLng) {
@@ -125,6 +144,20 @@ export class ProspectMap implements AfterViewInit, OnDestroy {
     );
   }
 
+  /** Plot every geocoded location as a translucent dot sized + colored by count. */
+  private renderDensity(points: DensityPoint[]) {
+    this.dots.clearLayers();
+    for (const p of points) {
+      const r = 2 + Math.log(p.count + 1) * 1.6; // log scale: 1 → tiny, thousands → big
+      L.circleMarker([p.lat, p.lon], {
+        radius: r,
+        stroke: false,
+        fillColor: heatColor(p.count),
+        fillOpacity: 0.45,
+      }).addTo(this.dots);
+    }
+  }
+
   private renderPins(items: CompanyListItem[]) {
     this.pins.clearLayers();
     for (const c of items) {
@@ -144,4 +177,12 @@ export class ProspectMap implements AfterViewInit, OnDestroy {
         .addTo(this.pins);
     }
   }
+}
+
+/** Blue (sparse) → amber → red (dense) ramp by company count. */
+function heatColor(count: number): string {
+  if (count >= 500) return '#dc2626';
+  if (count >= 100) return '#f59e0b';
+  if (count >= 20) return '#3b82f6';
+  return '#60a5fa';
 }

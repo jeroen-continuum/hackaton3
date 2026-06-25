@@ -22,6 +22,7 @@ from app.adapters.sources.connections import (
     NullConnectionProvider as _NullConnectionProvider,
 )
 from app.adapters.sources.db_financials import DbFinancialsProvider as _DbFinancials
+from app.adapters.sources.fake_financials import FakeFinancialsProvider as _FakeFinancials
 from app.adapters.sources.db_vacancies import DbVacancyProvider as _DbVacancies
 from app.adapters.sources.db_tech import DbTechProvider as _DbTech
 from app.adapters.outreach.llm_outreach import LlmOutreachGenerator as _LlmOutreachGenerator
@@ -54,7 +55,12 @@ def build_container(session: Session, icp: IcpFilter | None = None) -> Container
     filter_policy = IcpFilterPolicy(icp)
 
     # Per-enrichment flags: external API when ON, DB-backed (no HTTP) when OFF.
-    financials = _NbbProvider() if settings.enable_nbb_financials else _DbFinancials(session)
+    if settings.enable_nbb_financials:
+        financials = _NbbProvider()
+    elif settings.use_fake_financials:
+        financials = _FakeFinancials()
+    else:
+        financials = _DbFinancials(session)
     vacancies = _VdabProvider() if settings.enable_vdab_vacancies else _DbVacancies(session)
     tech = _WappalyzerProvider() if settings.enable_wappalyzer_tech else _DbTech(session)
     connections = (

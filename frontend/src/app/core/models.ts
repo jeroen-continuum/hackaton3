@@ -73,6 +73,21 @@ export interface Area {
   radius_km: number;
 }
 
+/** Pond scale + speed headline for the dashboard banner. */
+export interface PondStats {
+  total: number;
+  matched: number;
+  shortlist: number;
+  elapsed_ms: number;
+}
+
+/** One geocoded location with its company count, for the map density layer. */
+export interface DensityPoint {
+  lat: number;
+  lon: number;
+  count: number;
+}
+
 export interface FilterDefaults extends FilterParams {
   center_lat: number;
   center_lon: number;

@@ -14,6 +14,41 @@ from app.domain.models import CompanyProfile
 from app.models.entities import Company as _Company
 
 
+def apply_icp_filters(stmt, icp: IcpFilter):
+    """Add the ICP region + NACE include/exclude + area bounding-box predicates.
+
+    Shared by the pond selection (DbCompanySource) and the /stats + /density count
+    queries so they filter identically. For an area filter this applies only the
+    cheap bounding box; the exact haversine circle is enforced by load_pond.
+    """
+    stmt = stmt.where(_Company.active == True)  # noqa: E712
+
+    if icp.regions:
+        stmt = stmt.where(_Company.region.in_(icp.regions))
+
+    if icp.nace_include_prefixes:
+        stmt = stmt.where(
+            or_(*[_Company.nace_code.like(f"{p}%") for p in icp.nace_include_prefixes])
+        )
+
+    if icp.nace_exclude_prefixes:
+        stmt = stmt.where(
+            and_(*[not_(_Company.nace_code.like(f"{p}%")) for p in icp.nace_exclude_prefixes])
+        )
+
+    if icp.has_area:
+        lat_min, lat_max, lon_min, lon_max = bounding_box(
+            icp.center_lat, icp.center_lon, icp.radius_km
+        )
+        stmt = stmt.where(
+            _Company.latitude.is_not(None),
+            _Company.longitude.is_not(None),
+            _Company.latitude.between(lat_min, lat_max),
+            _Company.longitude.between(lon_min, lon_max),
+        )
+    return stmt
+
+
 class DbCompanySource:
     """Loads the candidate pond from the Company table, filtered by ICP."""
 
@@ -23,34 +58,12 @@ class DbCompanySource:
         self._limit = limit
 
     def load_pond(self) -> list[CompanyProfile]:
-        stmt = select(_Company).where(_Company.active == True)  # noqa: E712
-
-        if self._icp.regions:
-            stmt = stmt.where(_Company.region.in_(self._icp.regions))
-
-        if self._icp.nace_include_prefixes:
-            stmt = stmt.where(
-                or_(*[_Company.nace_code.like(f"{p}%") for p in self._icp.nace_include_prefixes])
-            )
-
-        if self._icp.nace_exclude_prefixes:
-            stmt = stmt.where(
-                and_(*[not_(_Company.nace_code.like(f"{p}%")) for p in self._icp.nace_exclude_prefixes])
-            )
+        stmt = apply_icp_filters(select(_Company), self._icp)
 
         if self._icp.has_area:
-            # Coarse bounding-box prefilter in SQL (cheap, index-backed); the exact
-            # circle is enforced with haversine below, BEFORE the limit, so the area
-            # is part of candidate selection rather than a post-cap lens.
-            lat_min, lat_max, lon_min, lon_max = bounding_box(
-                self._icp.center_lat, self._icp.center_lon, self._icp.radius_km
-            )
-            stmt = stmt.where(
-                _Company.latitude.is_not(None),
-                _Company.longitude.is_not(None),
-                _Company.latitude.between(lat_min, lat_max),
-                _Company.longitude.between(lon_min, lon_max),
-            )
+            # The bounding box is already applied; enforce the exact circle with
+            # haversine BEFORE the limit, so the area is part of candidate
+            # selection rather than a post-cap lens.
             rows = self._session.exec(stmt).all()
             rows = [
                 c for c in rows

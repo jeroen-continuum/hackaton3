@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 
 import {
   CompanyListItem, CompanyDetail, OutreachAsset, Contact, FilterParams, FilterDefaults,
+  PondStats, DensityPoint,
 } from './models';
 
 const BASE = 'http://localhost:8000';
@@ -22,6 +23,14 @@ export class ApiService {
 
   rank(filters: FilterParams): Observable<CompanyListItem[]> {
     return this.http.post<CompanyListItem[]>(`${BASE}/companies/rank`, filters);
+  }
+
+  stats(filters: FilterParams): Observable<PondStats> {
+    return this.http.post<PondStats>(`${BASE}/companies/stats`, filters);
+  }
+
+  density(): Observable<DensityPoint[]> {
+    return this.http.get<DensityPoint[]>(`${BASE}/companies/density`);
   }
 
   company(id: number): Observable<CompanyDetail> {

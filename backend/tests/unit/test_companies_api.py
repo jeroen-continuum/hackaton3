@@ -27,6 +27,25 @@ def client():
     fastapi_app.dependency_overrides.clear()
 
 
+@pytest.fixture
+def client_with_engine():
+    """Like `client`, but also hands back the engine so tests can seed rows."""
+    engine = create_engine(
+        "sqlite:///:memory:",
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+    )
+    SQLModel.metadata.create_all(engine)
+
+    def override_session():
+        with Session(engine) as session:
+            yield session
+
+    fastapi_app.dependency_overrides[get_session] = override_session
+    yield TestClient(fastapi_app), engine
+    fastapi_app.dependency_overrides.clear()
+
+
 def test_top10_returns_list(client):
     response = client.get("/companies/top10")
     assert response.status_code == 200
@@ -106,6 +125,54 @@ def test_filter_defaults_include_map_center(client):
     assert "center_lat" in body and "center_lon" in body
     assert "radius_km" in body  # null = area filter off by default
     assert 49 <= body["center_lat"] <= 52  # somewhere in Belgium
+
+
+def _seed_companies(engine):
+    """Three active companies: two NACE 64 (one geocoded at the same point), one NACE 70."""
+    from app.models.entities import Company
+    with Session(engine) as s:
+        s.add(Company(enterprise_number="0100000001", name="Fin A", region="BE",
+                      nace_code="64190", latitude=50.85, longitude=4.35))
+        s.add(Company(enterprise_number="0100000002", name="Fin B", region="BE",
+                      nace_code="64200", latitude=50.85, longitude=4.35))
+        s.add(Company(enterprise_number="0100000003", name="Prof C", region="BE",
+                      nace_code="70220", latitude=51.05, longitude=3.72))
+        s.commit()
+
+
+def test_stats_counts_total_and_matched(client_with_engine):
+    client, engine = client_with_engine
+    _seed_companies(engine)
+    # Only NACE 64 included → 2 of the 3 companies match.
+    body = client.post("/companies/stats", json={
+        "nace_include_prefixes": ["64"], "nace_exclude_prefixes": [],
+    }).json()
+    assert body["total"] == 3
+    assert body["matched"] == 2
+    assert body["shortlist"] == 2
+    assert isinstance(body["elapsed_ms"], (int, float))
+
+
+def test_stats_matched_shrinks_with_narrower_filter(client_with_engine):
+    client, engine = client_with_engine
+    _seed_companies(engine)
+    wide = client.post("/companies/stats", json={
+        "nace_include_prefixes": ["64", "70"], "nace_exclude_prefixes": [],
+    }).json()["matched"]
+    narrow = client.post("/companies/stats", json={
+        "nace_include_prefixes": ["70"], "nace_exclude_prefixes": [],
+    }).json()["matched"]
+    assert wide == 3 and narrow == 1
+
+
+def test_density_aggregates_by_location(client_with_engine):
+    client, engine = client_with_engine
+    _seed_companies(engine)
+    points = client.get("/companies/density").json()
+    # Two distinct centroids; the shared (50.85, 4.35) point carries 2 companies.
+    assert len(points) == 2
+    assert sum(p["count"] for p in points) == 3
+    assert max(p["count"] for p in points) == 2
 
 
 def _seed_scored_company(engine, **coords):

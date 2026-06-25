@@ -9,6 +9,11 @@
     @if (radiusKm() > 0) {
       <button class="clear" (click)="setRadius(0)">Clear</button>
     }
+    <label class="density-toggle">
+      <input type="checkbox" [checked]="showDensity()"
+             (change)="setShowDensity($any($event.target).checked)" />
+      Show all companies
+    </label>
     <span class="hint">Drag the marker or click the map to move the center.</span>
   </div>
   <div #map class="map"></div>

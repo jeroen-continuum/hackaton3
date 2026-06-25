@@ -1,10 +1,13 @@
 """Company endpoints — delegates to Rolling10 application service."""
+import time
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
+from sqlalchemy import func
 from sqlmodel import Session, select
 
+from app.adapters.sources.db_source import apply_icp_filters
 from app.composition import build_container
 from app.core import constants
 from app.db.session import get_session
@@ -79,6 +82,44 @@ def rank(filters: FilterRequest, session: Session = Depends(get_session)):
     container = build_container(session, filters.to_icp())
     container.pipeline.run()
     return container.rolling10.get_top10_with_scores()
+
+
+@router.post("/stats")
+def stats(filters: FilterRequest, session: Session = Depends(get_session)):
+    """Pond scale + speed: total companies, how many match the ICP, and the query time.
+
+    Pure COUNTs over the indexed Company table (no enrichment) — the honest basis
+    for the "we scan 1M+ companies fast" headline. `elapsed_ms` is the DB time only.
+    """
+    icp = filters.to_icp()
+    start = time.perf_counter()
+    total = session.exec(
+        select(func.count()).select_from(_C).where(_C.active == True)  # noqa: E712
+    ).one()
+    matched = session.exec(
+        apply_icp_filters(select(func.count()).select_from(_C), icp)
+    ).one()
+    elapsed_ms = round((time.perf_counter() - start) * 1000, 1)
+    return {
+        "total": total,
+        "matched": matched,
+        "shortlist": min(10, matched),
+        "elapsed_ms": elapsed_ms,
+    }
+
+
+@router.get("/density")
+def density(session: Session = Depends(get_session)):
+    """Company count per geocoded location (zip centroid) — powers the map heat layer.
+
+    Unfiltered on purpose: the whole 1.18M spread across Belgium. ~2.7k points.
+    """
+    rows = session.exec(
+        select(_C.latitude, _C.longitude, func.count())
+        .where(_C.latitude.is_not(None), _C.longitude.is_not(None))
+        .group_by(_C.latitude, _C.longitude)
+    ).all()
+    return [{"lat": lat, "lon": lon, "count": count} for lat, lon, count in rows]
 
 
 @router.get("/{company_id}")

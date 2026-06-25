@@ -17,6 +17,10 @@ class Settings(BaseSettings):
     # enrichment purely from the DB instead of calling its external API, so
     # /companies/rank does zero outbound HTTP. Flip one ON to re-enable its API.
     enable_nbb_financials: bool = False
+    # Hackathon: when NBB is OFF and this is ON, financials are synthesised
+    # (realistic weighted dummy data) instead of read from the DB. See
+    # adapters/sources/fake_financials.py.
+    use_fake_financials: bool = True
     enable_vdab_vacancies: bool = False
     enable_wappalyzer_tech: bool = False
     enable_csv_connections: bool = False

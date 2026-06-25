@@ -3,14 +3,17 @@ import { RouterLink } from '@angular/router';
 import { DecimalPipe } from '@angular/common';
 
 import { ApiService } from '../../core/api';
-import { Area, CompanyListItem, FilterDefaults, FilterParams } from '../../core/models';
+import {
+  Area, CompanyListItem, DensityPoint, FilterDefaults, FilterParams, PondStats,
+} from '../../core/models';
 import { Heatmap } from '../../shared/heatmap/heatmap';
 import { FilterPanel } from './filter-panel/filter-panel';
 import { ProspectMap } from './prospect-map/prospect-map';
+import { ScaleBanner } from './scale-banner/scale-banner';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [RouterLink, DecimalPipe, Heatmap, FilterPanel, ProspectMap],
+  imports: [RouterLink, DecimalPipe, Heatmap, FilterPanel, ProspectMap, ScaleBanner],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
 })
@@ -19,6 +22,8 @@ export class Dashboard {
   companies = signal<CompanyListItem[]>([]);
   loading = signal(true);
   defaults = signal<FilterDefaults | null>(null);
+  stats = signal<PondStats | null>(null);
+  density = signal<DensityPoint[]>([]);
 
   /** Last filters applied from the panel (null = panel untouched). */
   private lastFilters: FilterParams | null = null;
@@ -32,7 +37,11 @@ export class Dashboard {
   });
 
   constructor() {
-    this.api.filterDefaults().subscribe((d) => this.defaults.set(d));
+    this.api.filterDefaults().subscribe((d) => {
+      this.defaults.set(d);
+      this.refreshStats(); // now baseFilters() resolves → fill the funnel
+    });
+    this.api.density().subscribe((d) => this.density.set(d));
     this.load();
   }
 
@@ -43,6 +52,7 @@ export class Dashboard {
       this.companies.set(rows);
       this.loading.set(false);
     });
+    this.refreshStats();
   }
 
   /** Panel "Apply" — store the chosen filters and re-rank. */
@@ -59,24 +69,36 @@ export class Dashboard {
 
   /** Re-run selection + scoring with the current filters + area. */
   private rerank() {
-    const base = this.baseFilters();
-    if (!base) {
+    const filters = this.currentFilters();
+    if (!filters) {
       this.load();
       return;
     }
-    const a = this.area();
     this.loading.set(true);
-    this.api
-      .rank({
-        ...base,
-        center_lat: a?.center_lat ?? null,
-        center_lon: a?.center_lon ?? null,
-        radius_km: a?.radius_km ?? null,
-      })
-      .subscribe((rows) => {
-        this.companies.set(rows);
-        this.loading.set(false);
-      });
+    this.api.rank(filters).subscribe((rows) => {
+      this.companies.set(rows);
+      this.loading.set(false);
+    });
+    this.refreshStats();
+  }
+
+  /** Recompute the scale/speed funnel for the current filters + area. */
+  private refreshStats() {
+    const filters = this.currentFilters();
+    if (filters) this.api.stats(filters).subscribe((s) => this.stats.set(s));
+  }
+
+  /** Current base filters merged with the chosen area (null until defaults load). */
+  private currentFilters(): FilterParams | null {
+    const base = this.baseFilters();
+    if (!base) return null;
+    const a = this.area();
+    return {
+      ...base,
+      center_lat: a?.center_lat ?? null,
+      center_lon: a?.center_lon ?? null,
+      radius_km: a?.radius_km ?? null,
+    };
   }
 
   /** Panel filters if set, else the backend defaults projected onto FilterParams. */
