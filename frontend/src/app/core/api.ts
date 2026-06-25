@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 
 import {
   CompanyListItem, CompanyDetail, OutreachAsset, Contact, FilterParams, FilterDefaults,
-  PondStats, DensityPoint,
+  PondStats, DensityPoint, Employee, Connection, CompanyConnections, ConnectionType,
 } from './models';
 
 const BASE = 'http://localhost:8000';
@@ -55,5 +55,32 @@ export class ApiService {
     return this.http.get<{ contacts: Contact[]; persisted: boolean }>(
       `${BASE}/companies/${id}/contacts`
     );
+  }
+
+  listEmployees(): Observable<Employee[]> {
+    return this.http.get<Employee[]>(`${BASE}/employees`);
+  }
+
+  createEmployee(body: { name: string; email?: string; title?: string }): Observable<Employee> {
+    return this.http.post<Employee>(`${BASE}/employees`, body);
+  }
+
+  companyConnections(id: number): Observable<CompanyConnections> {
+    return this.http.get<CompanyConnections>(`${BASE}/companies/${id}/connections`);
+  }
+
+  createConnection(body: {
+    employee_id: number;
+    company_id: number;
+    type: ConnectionType;
+    start_date?: string | null;
+    end_date?: string | null;
+    note?: string | null;
+  }): Observable<Connection> {
+    return this.http.post<Connection>(`${BASE}/connections`, body);
+  }
+
+  deleteConnection(id: number): Observable<unknown> {
+    return this.http.delete(`${BASE}/connections/${id}`);
   }
 }

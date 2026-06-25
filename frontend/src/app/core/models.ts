@@ -38,6 +38,34 @@ export interface CompanyDetail {
   score: { total: number; rank: number; breakdown: ScoreBreakdown } | null;
 }
 
+export interface Employee {
+  id: number;
+  name: string;
+  email: string | null;
+  title: string | null;
+  active: boolean;
+}
+
+export type ConnectionType = 'EMPLOYER' | 'CLIENT' | 'PERSONAL';
+
+export interface Connection {
+  id: number;
+  employee_id: number;
+  employee_name: string;
+  employee_title: string | null;
+  type: ConnectionType;
+  start_date: string | null;
+  end_date: string | null;
+  note: string | null;
+  strength: number;
+}
+
+/** Warm ties for a company, strongest first; is_client inferred from a CLIENT tie. */
+export interface CompanyConnections {
+  connections: Connection[];
+  is_client: boolean;
+}
+
 export interface OutreachAsset {
   email_subject: string;
   email_body: string;
@@ -63,6 +91,10 @@ export interface FilterParams {
   max_ebitda: number | null;
   apply_size: boolean;
   apply_financial: boolean;
+  // Keep only companies we have a warm connection to.
+  only_warm?: boolean;
+  // Drop companies that are already our clients.
+  exclude_clients?: boolean;
   // Area filter — all omitted/null = no geographic restriction.
   center_lat?: number | null;
   center_lon?: number | null;

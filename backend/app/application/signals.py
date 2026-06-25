@@ -2,7 +2,15 @@
 
 All functions are side-effect-free and fully unit-testable.
 """
-from app.core.constants import FOCUS_NACE_PREFIXES
+from datetime import date
+
+from app.core.constants import (
+    FOCUS_NACE_PREFIXES,
+    CONNECTION_TYPE_WEIGHT,
+    CONNECTION_RECENCY_FLOOR,
+    CONNECTION_RECENCY_SPAN_YEARS,
+    CONNECTION_SATURATION,
+)
 from app.domain.models import CompanyProfile, Financials, Signals
 from app.pipeline.filter import passes_financial_fit
 
@@ -43,9 +51,36 @@ def extract_sector_fit(profile: CompanyProfile) -> float:
     return 0.5
 
 
+def _as_date(value) -> date | None:
+    """Accept a date, an ISO string, or None; ignore anything unparseable."""
+    if value is None or value == "":
+        return None
+    if isinstance(value, date):
+        return value
+    try:
+        return date.fromisoformat(str(value))
+    except ValueError:
+        return None
+
+
+def connection_weight(conn: dict, today: date | None = None) -> float:
+    """Strength of a single tie = type weight * recency factor.
+
+    EMPLOYER > CLIENT > PERSONAL; a tie decays linearly with age down to a floor.
+    An ongoing tie (no end_date) is treated as current.
+    """
+    today = today or date.today()
+    base = CONNECTION_TYPE_WEIGHT.get(conn.get("type", "EMPLOYER"), 0.4)
+    ref = _as_date(conn.get("end_date")) or today
+    years = max(0.0, (today - ref).days / 365)
+    recency = max(CONNECTION_RECENCY_FLOOR, 1 - years / CONNECTION_RECENCY_SPAN_YEARS)
+    return base * recency
+
+
 def extract_warm_connection(connections: list[dict]) -> float:
-    """min(1.0, count / 3) — 3 or more shared connections saturates the signal."""
-    return min(1.0, len(connections) / 3)
+    """Type+recency weighted sum of ties, saturating at 1.0."""
+    today = date.today()
+    return min(1.0, sum(connection_weight(c, today) for c in connections) / CONNECTION_SATURATION)
 
 
 def build_signals(

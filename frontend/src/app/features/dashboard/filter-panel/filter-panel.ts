@@ -37,6 +37,8 @@ export class FilterPanel {
   maxEmployees = linkedSignal(() => this.defaults()?.max_employees ?? 0);
   applySize = linkedSignal(() => this.defaults()?.apply_size ?? true);
   applyFinancial = linkedSignal(() => this.defaults()?.apply_financial ?? true);
+  onlyWarm = linkedSignal(() => this.defaults()?.only_warm ?? false);
+  excludeClients = linkedSignal(() => this.defaults()?.exclude_clients ?? false);
   minEbitda = linkedSignal(() => this.defaults()?.min_ebitda ?? 0);
   maxEbitda = linkedSignal<number | null>(() => this.defaults()?.max_ebitda ?? null);
   // EBITDA shown in millions of € — easier to read than raw 1500000.
@@ -75,6 +77,8 @@ export class FilterPanel {
       max_ebitda: this.maxEbitda(), // null = no upper bound
       apply_size: this.applySize(),
       apply_financial: this.applyFinancial(),
+      only_warm: this.onlyWarm(),
+      exclude_clients: this.excludeClients(),
     });
   }
 
@@ -86,6 +90,8 @@ export class FilterPanel {
       this.maxEmployees.set(d.max_employees);
       this.applySize.set(d.apply_size);
       this.applyFinancial.set(d.apply_financial);
+      this.onlyWarm.set(d.only_warm ?? false);
+      this.excludeClients.set(d.exclude_clients ?? false);
       this.minEbitda.set(d.min_ebitda);
       this.maxEbitda.set(d.max_ebitda);
       const inc = new Set(d.nace_include_prefixes);

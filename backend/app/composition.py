@@ -19,7 +19,7 @@ from app.adapters.sources.vdab import VdabVacancyProvider as _VdabProvider
 from app.adapters.sources.wappalyzer import WappalyzerTechProvider as _WappalyzerProvider
 from app.adapters.sources.connections import (
     CsvConnectionProvider as _CsvConnectionProvider,
-    NullConnectionProvider as _NullConnectionProvider,
+    DbConnectionProvider as _DbConnectionProvider,
 )
 from app.adapters.sources.db_financials import DbFinancialsProvider as _DbFinancials
 from app.adapters.sources.fake_financials import FakeFinancialsProvider as _FakeFinancials
@@ -63,9 +63,10 @@ def build_container(session: Session, icp: IcpFilter | None = None) -> Container
         financials = _DbFinancials(session)
     vacancies = _VdabProvider() if settings.enable_vdab_vacancies else _DbVacancies(session)
     tech = _WappalyzerProvider() if settings.enable_wappalyzer_tech else _DbTech(session)
+    # DB-backed by default (employee->company ties); CSV only if explicitly enabled.
     connections = (
         _CsvConnectionProvider() if settings.enable_csv_connections
-        else _NullConnectionProvider()
+        else _DbConnectionProvider(session)
     )
 
     pipeline = RunPipeline(

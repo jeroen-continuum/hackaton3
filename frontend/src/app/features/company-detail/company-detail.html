@@ -25,6 +25,8 @@
       }
     </section>
 
+    <app-connections-panel [companyId]="c.id" (changed)="reload()" />
+
     <section class="panel">
       <h2>Buyer personas</h2>
       <ul>

@@ -4,6 +4,7 @@ A Company is the spine. Each enrichment source hangs off it 1:1 or 1:N.
 Score + OutreachAsset are produced by the pipeline and read by the web app.
 JSON columns hold semi-structured detail (e.g. the per-criterion heatmap).
 """
+from datetime import date
 from typing import Optional
 from sqlmodel import SQLModel, Field, Relationship, Column, JSON
 
@@ -99,6 +100,36 @@ class OutreachAsset(SQLModel, table=True):
     teaser_full: Optional[str] = None       # gated behind contact details
 
     company: Optional[Company] = Relationship(back_populates="outreach")
+
+
+class Employee(SQLModel, table=True):
+    """One of our own consultants — the source of a warm connection."""
+    id: Optional[int] = Field(default=None, primary_key=True)
+    name: str
+    email: Optional[str] = None
+    title: Optional[str] = None             # current role at our firm
+    active: bool = True
+
+    connections: list["Connection"] = Relationship(back_populates="employee")
+
+
+class Connection(SQLModel, table=True):
+    """A warm tie from an employee to a company.
+
+    type: EMPLOYER (worked there) | CLIENT (we delivered a project) |
+          PERSONAL (knows someone who works there).
+    end_date None = ongoing. A company with any CLIENT tie is treated as a client.
+    """
+    id: Optional[int] = Field(default=None, primary_key=True)
+    employee_id: int = Field(foreign_key="employee.id", index=True)
+    company_id: int = Field(foreign_key="company.id", index=True)
+    type: str = "EMPLOYER"
+    start_date: Optional[date] = None
+    end_date: Optional[date] = None
+    note: Optional[str] = None              # e.g. PERSONAL "knows the CFO"
+
+    employee: Optional["Employee"] = Relationship(back_populates="connections")
+    company: Optional["Company"] = Relationship()
 
 
 class SolutionCase(SQLModel, table=True):

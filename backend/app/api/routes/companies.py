@@ -12,7 +12,8 @@ from app.composition import build_container
 from app.core import constants
 from app.db.session import get_session
 from app.domain.filters import IcpFilter
-from app.models import Company as _C, Score as _S
+from app.domain.geo import haversine_km
+from app.models import Company as _C, Score as _S, Connection
 
 router = APIRouter(prefix="/companies", tags=["companies"])
 
@@ -32,6 +33,10 @@ class FilterRequest(BaseModel):
     max_ebitda: Optional[float] = constants.MAX_EBITDA  # None = no upper bound
     apply_size: bool = True
     apply_financial: bool = True
+    # When true, keep only companies we have a warm connection to.
+    only_warm: bool = False
+    # When true, drop companies that are already our clients (any CLIENT tie).
+    exclude_clients: bool = False
     # Area filter — all None = no geographic restriction.
     center_lat: Optional[float] = None
     center_lon: Optional[float] = None
@@ -82,12 +87,29 @@ def filter_defaults():
     }
 
 
+def _connection_company_ids(session: Session, *, client_only: bool = False) -> set[int]:
+    """Company ids with a warm tie; only CLIENT ties when client_only is set."""
+    stmt = select(Connection.company_id).distinct()
+    if client_only:
+        stmt = stmt.where(Connection.type == "CLIENT")
+    return set(session.exec(stmt).all())
+
+
 @router.post("/rank")
 def rank(filters: FilterRequest, session: Session = Depends(get_session)):
     """Re-run selection + scoring with the given ICP filters; return the Rolling 10."""
     container = build_container(session, filters.to_icp())
     container.pipeline.run()
-    return container.rolling10.get_top10_with_scores()
+    results = container.rolling10.get_top10_with_scores()
+    if filters.only_warm:
+        # ponytail: filters the top-10 to connected companies; widen to a full-pond
+        # query if a demo needs more warm rows than the warm boost surfaces.
+        warm_ids = _connection_company_ids(session)
+        results = [r for r in results if r["id"] in warm_ids]
+    if filters.exclude_clients:
+        client_ids = _connection_company_ids(session, client_only=True)
+        results = [r for r in results if r["id"] not in client_ids]
+    return results
 
 
 @router.post("/stats")
@@ -102,11 +124,41 @@ def stats(filters: FilterRequest, session: Session = Depends(get_session)):
     total = session.exec(
         select(func.count()).select_from(_C).where(_C.active == True)  # noqa: E712
     ).one()
-    matched_stmt = apply_financial_filters(
-        apply_icp_filters(select(func.count(func.distinct(_C.id))).select_from(_C), icp),
-        icp,
-    )
-    matched = session.exec(matched_stmt).one()
+
+    def _with_connection_filters(stmt):
+        # Same connection-based narrowing rank applies, so the headline count
+        # tracks the toggles instead of over-reporting the unfiltered pond.
+        if filters.only_warm:
+            stmt = stmt.where(_C.id.in_(_connection_company_ids(session)))
+        if filters.exclude_clients:
+            stmt = stmt.where(
+                _C.id.not_in(_connection_company_ids(session, client_only=True))
+            )
+        return stmt
+
+    if icp.has_area:
+        # apply_icp_filters only adds the cheap bounding box; trim to the exact
+        # haversine circle in Python so the count matches what load_pond selects.
+        rows = session.exec(
+            _with_connection_filters(
+                apply_financial_filters(
+                    apply_icp_filters(select(_C.id, _C.latitude, _C.longitude), icp), icp
+                )
+            )
+        ).all()
+        matched = sum(
+            1 for _id, lat, lon in rows
+            if haversine_km(icp.center_lat, icp.center_lon, lat, lon) <= icp.radius_km
+        )
+    else:
+        matched = session.exec(
+            _with_connection_filters(
+                apply_financial_filters(
+                    apply_icp_filters(select(func.count(func.distinct(_C.id))).select_from(_C), icp),
+                    icp,
+                )
+            )
+        ).one()
     elapsed_ms = round((time.perf_counter() - start) * 1000, 1)
     return {
         "total": total,

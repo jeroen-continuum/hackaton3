@@ -86,7 +86,17 @@ class DbCompanySource:
         self._limit = limit
 
     def load_pond(self) -> list[CompanyProfile]:
-        stmt = apply_icp_filters(select(_Company), self._icp)
+        # Apply the financial filter at SELECTION time, BEFORE the limit — otherwise
+        # the limit fills up with low-id companies that fail the financial band and
+        # the qualifying ones (often higher ids) never get scored, so /stats and the
+        # Rolling 10 disagree. No-op when both data filters are off.
+        # ponytail: assumes DB-backed financials (same assumption /stats already makes);
+        # if NBB live-fetch is ever the only source, selection-time filtering needs rework.
+        # Deterministic ordering so the candidate pool (and thus the scored set)
+        # is stable across runs — provisioning relies on selecting the same set.
+        stmt = apply_financial_filters(
+            apply_icp_filters(select(_Company), self._icp), self._icp
+        ).order_by(_Company.id)
 
         if self._icp.has_area:
             # The bounding box is already applied; enforce the exact circle with

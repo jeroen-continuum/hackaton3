@@ -59,6 +59,16 @@
              (change)="applyFinancial.set($any($event.target).checked)" />
       Financial filter
     </label>
+    <label class="chip">
+      <input type="checkbox" [checked]="onlyWarm()"
+             (change)="onlyWarm.set($any($event.target).checked)" />
+      Only warm intros
+    </label>
+    <label class="chip">
+      <input type="checkbox" [checked]="excludeClients()"
+             (change)="excludeClients.set($any($event.target).checked)" />
+      Exclude existing clients
+    </label>
   </div>
 
   <div class="actions">

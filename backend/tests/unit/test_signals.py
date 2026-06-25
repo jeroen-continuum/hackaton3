@@ -58,12 +58,29 @@ def test_sector_fit_no_nace():
     assert extract_sector_fit(profile) == 0.0
 
 
-def test_warm_connection_capped_at_one():
-    assert extract_warm_connection([{}, {}, {}, {}]) == pytest.approx(1.0)
+def test_warm_connection_saturates_at_one():
+    # Three current employer ties (weight 1.0 each) -> 3/3 = 1.0, capped.
+    ties = [{"type": "EMPLOYER", "end_date": None}] * 3
+    assert extract_warm_connection(ties) == pytest.approx(1.0)
 
 
 def test_warm_connection_partial():
-    assert extract_warm_connection([{}]) == pytest.approx(1 / 3)
+    # One current employer tie: weight 1.0 / saturation 3.0.
+    assert extract_warm_connection([{"type": "EMPLOYER", "end_date": None}]) == pytest.approx(1 / 3)
+
+
+def test_warm_connection_employer_beats_personal():
+    same_recency = {"end_date": None}
+    employer = extract_warm_connection([{**same_recency, "type": "EMPLOYER"}])
+    personal = extract_warm_connection([{**same_recency, "type": "PERSONAL"}])
+    assert employer > personal
+
+
+def test_warm_connection_recent_beats_old():
+    from datetime import date
+    recent = extract_warm_connection([{"type": "CLIENT", "end_date": date.today().isoformat()}])
+    old = extract_warm_connection([{"type": "CLIENT", "end_date": "2005-01-01"}])
+    assert recent > old
 
 
 def test_build_signals_returns_signals_object():

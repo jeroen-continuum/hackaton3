@@ -58,3 +58,11 @@ SCORE_WEIGHTS = {
     "sector_fit": 0.10,        # in a focus sector with strong reference cases
     "warm_connection": 0.15,   # 2nd/3rd-degree tie to the sales team
 }
+
+# --- Warm-connection weighting (employee -> company ties) ---
+# A tie's strength = type weight * recency factor. The weighted sum across a
+# company's ties saturates the warm_connection signal at 1.0.
+CONNECTION_TYPE_WEIGHT = {"EMPLOYER": 1.0, "CLIENT": 0.7, "PERSONAL": 0.4}
+CONNECTION_RECENCY_FLOOR = 0.3        # oldest ties still count this much
+CONNECTION_RECENCY_SPAN_YEARS = 15    # linear decay to the floor over this span
+CONNECTION_SATURATION = 3.0           # weighted sum that saturates the signal at 1.0

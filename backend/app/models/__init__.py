@@ -7,6 +7,8 @@ from app.models.entities import (
     Score,
     OutreachAsset,
     SolutionCase,
+    Employee,
+    Connection,
 )
 
 __all__ = [
@@ -18,4 +20,6 @@ __all__ = [
     "Score",
     "OutreachAsset",
     "SolutionCase",
+    "Employee",
+    "Connection",
 ]

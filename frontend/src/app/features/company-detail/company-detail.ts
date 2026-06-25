@@ -4,10 +4,11 @@ import { RouterLink } from '@angular/router';
 import { ApiService } from '../../core/api';
 import { CompanyDetail } from '../../core/models';
 import { Heatmap } from '../../shared/heatmap/heatmap';
+import { ConnectionsPanel } from './connections-panel/connections-panel';
 
 @Component({
   selector: 'app-company-detail',
-  imports: [RouterLink, Heatmap],
+  imports: [RouterLink, Heatmap, ConnectionsPanel],
   templateUrl: './company-detail.html',
   styleUrl: './company-detail.scss',
 })
@@ -18,8 +19,12 @@ export class CompanyDetailPage {
 
   constructor() {
     effect(() => {
-      const cid = Number(this.id());
-      this.api.company(cid).subscribe((c) => this.company.set(c));
+      this.reload();
     });
+  }
+
+  /** Re-fetch the company so the heatmap (warm_connection) + rank reflect a new tie. */
+  reload() {
+    this.api.company(Number(this.id())).subscribe((c) => this.company.set(c));
   }
 }
