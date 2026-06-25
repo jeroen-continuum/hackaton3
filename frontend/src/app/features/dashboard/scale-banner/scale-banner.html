@@ -1,0 +1,21 @@
+@if (stats(); as s) {
+  <section class="scale-banner">
+    <div class="funnel">
+      <div class="stage">
+        <span class="num">{{ totalShown() | number }}</span>
+        <span class="lbl">companies in the pond</span>
+      </div>
+      <span class="arrow">→</span>
+      <div class="stage">
+        <span class="num">{{ matchedShown() | number }}</span>
+        <span class="lbl">match your ICP</span>
+      </div>
+      <span class="arrow">→</span>
+      <div class="stage">
+        <span class="num">{{ s.shortlist }}</span>
+        <span class="lbl">shortlisted</span>
+      </div>
+    </div>
+    <div class="speed">⚡ scanned full pond in {{ s.elapsed_ms }} ms</div>
+  </section>
+}
