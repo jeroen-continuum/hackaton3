@@ -1,0 +1,74 @@
+<section class="panel">
+  <h2>
+    Who do we know here
+    @if (data()?.is_client) { <span class="badge client">Client</span> }
+  </h2>
+
+  @let d = data();
+  @if (d && d.connections.length) {
+    <p class="intro">
+      Best introducer: <strong>{{ d.connections[0].employee_name }}</strong>
+      — {{ typeLabel(d.connections[0].type) }}
+      @if (d.connections[0].end_date || d.connections[0].start_date) {
+        ({{ d.connections[0].start_date }}@if (d.connections[0].end_date) { –{{ d.connections[0].end_date }} } @else { – now })
+      }
+    </p>
+    <ul class="conns">
+      @for (con of d.connections; track con.id) {
+        <li>
+          <span class="who">{{ con.employee_name }}</span>
+          @if (con.employee_title) { <span class="role">· {{ con.employee_title }}</span> }
+          <span class="type {{ con.type | lowercase }}">{{ typeLabel(con.type) }}</span>
+          @if (con.start_date) {
+            <span class="dates">{{ con.start_date }}@if (con.end_date) { – {{ con.end_date }} } @else { – now }</span>
+          }
+          @if (con.note) { <span class="note">“{{ con.note }}”</span> }
+          <button class="del" (click)="remove(con.id)" title="Remove">✕</button>
+        </li>
+      }
+    </ul>
+  } @else if (d) {
+    <p class="muted">No warm connections yet.</p>
+  }
+
+  @if (!showForm()) {
+    <button class="add" (click)="showForm.set(true)">+ Add connection</button>
+  } @else {
+    <form class="conn-form" (submit)="$event.preventDefault(); save()">
+      <label>
+        Employee
+        <select (change)="empId.set(+$any($event.target).value || null)">
+          <option value="">— pick —</option>
+          @for (e of employees(); track e.id) {
+            <option [value]="e.id">{{ e.name }}@if (e.title) { ({{ e.title }}) }</option>
+          }
+        </select>
+      </label>
+      <label>
+        Type
+        <select (change)="type.set($any($event.target).value)">
+          @for (t of types; track t) {
+            <option [value]="t" [selected]="t === type()">{{ typeLabel(t) }}</option>
+          }
+        </select>
+      </label>
+      <label>
+        Start
+        <input type="date" [value]="startDate()" (input)="startDate.set($any($event.target).value)" />
+      </label>
+      <label>
+        End <span class="hint">(blank = ongoing)</span>
+        <input type="date" [value]="endDate()" (input)="endDate.set($any($event.target).value)" />
+      </label>
+      <label class="full">
+        Note
+        <input type="text" placeholder="e.g. knows the CFO"
+               [value]="note()" (input)="note.set($any($event.target).value)" />
+      </label>
+      <div class="actions">
+        <button type="submit" class="primary" [disabled]="empId() == null">Save</button>
+        <button type="button" (click)="showForm.set(false)">Cancel</button>
+      </div>
+    </form>
+  }
+</section>

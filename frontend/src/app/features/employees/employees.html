@@ -1,0 +1,24 @@
+<a routerLink="/" class="back">← Rolling 10</a>
+<header class="head">
+  <h1>Employees</h1>
+  <span class="sub">Our consultants — the source of warm connections</span>
+</header>
+
+<form class="add-form" (submit)="$event.preventDefault(); add()">
+  <input type="text" placeholder="Name" [value]="name()" (input)="name.set($any($event.target).value)" />
+  <input type="text" placeholder="Title (optional)" [value]="title()" (input)="title.set($any($event.target).value)" />
+  <input type="email" placeholder="Email (optional)" [value]="email()" (input)="email.set($any($event.target).value)" />
+  <button type="submit" class="primary" [disabled]="!name().trim()">Add employee</button>
+</form>
+
+<ul class="list">
+  @for (e of employees(); track e.id) {
+    <li>
+      <span class="who">{{ e.name }}</span>
+      @if (e.title) { <span class="role">· {{ e.title }}</span> }
+      @if (e.email) { <span class="email">{{ e.email }}</span> }
+    </li>
+  } @empty {
+    <li class="muted">No employees yet.</li>
+  }
+</ul>

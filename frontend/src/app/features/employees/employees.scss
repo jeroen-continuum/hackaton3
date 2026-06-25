@@ -1,0 +1,24 @@
+.back { color: #2563eb; text-decoration: none; font-size: 14px; }
+.head { margin: 8px 0 20px; }
+.head h1 { margin: 0; }
+.sub { color: #888; font-size: 13px; }
+
+.add-form { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+.add-form input {
+  padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 7px; font-size: 14px; flex: 1 1 180px;
+}
+.add-form .primary {
+  padding: 8px 16px; border-radius: 7px; border: 1px solid #2563eb; background: #2563eb;
+  color: #fff; cursor: pointer; font-size: 14px;
+}
+.add-form .primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.list { list-style: none; margin: 0; padding: 0; }
+.list li {
+  display: flex; align-items: center; gap: 8px; padding: 9px 0;
+  border-bottom: 1px solid #f0f0f0; font-size: 14px;
+}
+.who { font-weight: 600; }
+.role { color: #888; }
+.email { color: #aaa; margin-left: auto; font-size: 13px; }
+.muted { color: #888; }

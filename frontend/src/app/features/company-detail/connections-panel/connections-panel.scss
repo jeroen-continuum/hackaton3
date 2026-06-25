@@ -1,0 +1,52 @@
+.panel { border: 1px solid #e3e3e3; border-radius: 12px; padding: 16px; background: #fff; }
+.panel h2 { font-size: 15px; margin: 0 0 12px; display: flex; align-items: center; gap: 8px; }
+.muted { color: #888; font-size: 14px; }
+
+.badge.client {
+  font-size: 11px; font-weight: 600; color: #fff; background: #16a34a;
+  padding: 2px 8px; border-radius: 10px;
+}
+
+.intro { font-size: 14px; margin: 0 0 12px; color: #333; }
+
+.conns { list-style: none; margin: 0 0 12px; padding: 0; }
+.conns li {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
+  padding: 7px 0; border-bottom: 1px solid #f0f0f0; font-size: 13px;
+}
+.who { font-weight: 600; }
+.role { color: #888; }
+.type {
+  font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 8px;
+  background: #eef; color: #335;
+}
+.type.employer { background: #e0edff; color: #1e40af; }
+.type.client { background: #dcfce7; color: #15803d; }
+.type.personal { background: #fef3c7; color: #92400e; }
+.dates { color: #777; }
+.note { color: #555; font-style: italic; }
+.del {
+  margin-left: auto; border: none; background: none; color: #bbb; cursor: pointer;
+  font-size: 13px;
+}
+.del:hover { color: #dc2626; }
+
+.add {
+  border: 1px dashed #cbd5e1; background: #f8fafc; color: #2563eb;
+  border-radius: 8px; padding: 7px 12px; cursor: pointer; font-size: 13px;
+}
+
+.conn-form { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.conn-form label { display: flex; flex-direction: column; font-size: 12px; color: #666; gap: 3px; }
+.conn-form label.full { grid-column: 1 / -1; }
+.conn-form .hint { color: #aaa; font-weight: 400; }
+.conn-form select, .conn-form input {
+  padding: 6px 8px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px;
+}
+.conn-form .actions { grid-column: 1 / -1; display: flex; gap: 8px; }
+.conn-form .actions button {
+  padding: 7px 14px; border-radius: 7px; border: 1px solid #d1d5db;
+  background: #fff; cursor: pointer; font-size: 13px;
+}
+.conn-form .actions .primary { background: #2563eb; color: #fff; border-color: #2563eb; }
+.conn-form .actions .primary:disabled { opacity: 0.5; cursor: not-allowed; }
