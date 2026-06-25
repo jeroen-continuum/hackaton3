@@ -12,9 +12,13 @@ class ApolloContactProvider:
 
     BASE_URL = "https://api.apollo.io/v1/mixed_people/search"
 
+    def __init__(self, enabled: bool = True) -> None:
+        # When disabled, never call the external API — return demo personas.
+        self._enabled = enabled
+
     def find_buyer_personas(self, enterprise_number: str) -> list[dict]:
         api_key = getattr(settings, "apollo_api_key", "")
-        if not api_key:
+        if not self._enabled or not api_key:
             return self._demo_personas(enterprise_number)
         try:
             resp = httpx.post(

@@ -20,3 +20,9 @@ class CsvConnectionProvider:
                         "strength": row.get("strength", ""),
                     })
         return results
+
+
+class NullConnectionProvider:
+    """No-op connections — used when enable_csv_connections is OFF."""
+    def shared(self, enterprise_number: str) -> list[dict]:
+        return []

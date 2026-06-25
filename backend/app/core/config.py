@@ -13,6 +13,15 @@ class Settings(BaseSettings):
     # filter-selected candidate set is capped before enrichment.
     max_pond_enrich: int = 500
 
+    # Per-enrichment feature flags. When OFF (default), the pipeline reads that
+    # enrichment purely from the DB instead of calling its external API, so
+    # /companies/rank does zero outbound HTTP. Flip one ON to re-enable its API.
+    enable_nbb_financials: bool = False
+    enable_vdab_vacancies: bool = False
+    enable_wappalyzer_tech: bool = False
+    enable_csv_connections: bool = False
+    enable_apollo_contacts: bool = False
+
     apollo_api_key: str = ""
     hunter_api_key: str = ""
     vdab_api_key: str = ""
