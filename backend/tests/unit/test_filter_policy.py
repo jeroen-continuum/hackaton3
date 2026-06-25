@@ -37,12 +37,12 @@ def test_fails_excluded_nace(policy, valid_financials):
     assert "86" in result.reason
 
 
-def test_missing_financials_does_not_disqualify(policy, valid_profile):
-    # No financial data available -> unknown, not a failure. The size/financial
-    # sub-filters are simply not evaluated; the company passes on NACE/region.
+def test_missing_financials_disqualifies_when_filter_on(policy, valid_profile):
+    # Default policy has size + financial filters ON; a company with no financial
+    # data can't satisfy them, so it's dropped.
     result = policy.evaluate(valid_profile, None)
-    assert result.passes is True
-    assert result.reason is None
+    assert result.passes is False
+    assert result.reason == "no financial data"
 
 
 def test_excluded_nace_fails_even_without_financials(policy):

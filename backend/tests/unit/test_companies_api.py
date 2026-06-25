@@ -143,9 +143,11 @@ def _seed_companies(engine):
 def test_stats_counts_total_and_matched(client_with_engine):
     client, engine = client_with_engine
     _seed_companies(engine)
-    # Only NACE 64 included → 2 of the 3 companies match.
+    # Only NACE 64 included → 2 of the 3 companies match. Data-dependent filters
+    # off: these rows have no FinancialData, so size/financial would drop them.
     body = client.post("/companies/stats", json={
         "nace_include_prefixes": ["64"], "nace_exclude_prefixes": [],
+        "apply_size": False, "apply_financial": False,
     }).json()
     assert body["total"] == 3
     assert body["matched"] == 2
@@ -158,11 +160,62 @@ def test_stats_matched_shrinks_with_narrower_filter(client_with_engine):
     _seed_companies(engine)
     wide = client.post("/companies/stats", json={
         "nace_include_prefixes": ["64", "70"], "nace_exclude_prefixes": [],
+        "apply_size": False, "apply_financial": False,
     }).json()["matched"]
     narrow = client.post("/companies/stats", json={
         "nace_include_prefixes": ["70"], "nace_exclude_prefixes": [],
+        "apply_size": False, "apply_financial": False,
     }).json()["matched"]
     assert wide == 3 and narrow == 1
+
+
+def _seed_with_financials(engine):
+    """Two active NACE-64 companies, each with one FinancialData row."""
+    from app.models.entities import Company, FinancialData
+    with Session(engine) as s:
+        big = Company(enterprise_number="0100000001", name="Big Fin", region="BE", nace_code="64190")
+        small = Company(enterprise_number="0100000002", name="Small Fin", region="BE", nace_code="64200")
+        s.add(big)
+        s.add(small)
+        s.commit()
+        s.refresh(big)
+        s.refresh(small)
+        # Big: 250 FTE + ample EBITDA. Small: 10 FTE + tiny EBITDA.
+        s.add(FinancialData(company_id=big.id, employees=250, ebitda=9_500_000))
+        s.add(FinancialData(company_id=small.id, employees=10, ebitda=100_000))
+        s.commit()
+
+
+def test_stats_matched_respects_employee_filter(client_with_engine):
+    client, engine = client_with_engine
+    _seed_with_financials(engine)
+    body = client.post("/companies/stats", json={
+        "nace_include_prefixes": ["64"], "nace_exclude_prefixes": [],
+        "min_employees": 100, "max_employees": 500,
+        "apply_size": True, "apply_financial": False,
+    }).json()
+    assert body["total"] == 2
+    assert body["matched"] == 1  # only Big Fin (250 FTE) is in the 100–500 range
+
+
+def test_stats_matched_respects_financial_filter(client_with_engine):
+    client, engine = client_with_engine
+    _seed_with_financials(engine)
+    body = client.post("/companies/stats", json={
+        "nace_include_prefixes": ["64"], "nace_exclude_prefixes": [],
+        "apply_size": False, "apply_financial": True,
+    }).json()
+    assert body["matched"] == 1  # only Big Fin clears the default EBITDA floor
+
+
+def test_stats_matched_ignores_data_filters_when_off(client_with_engine):
+    client, engine = client_with_engine
+    _seed_with_financials(engine)
+    body = client.post("/companies/stats", json={
+        "nace_include_prefixes": ["64"], "nace_exclude_prefixes": [],
+        "apply_size": False, "apply_financial": False,
+    }).json()
+    assert body["matched"] == 2  # both NACE-64 companies, no data-dependent filtering
 
 
 def test_density_aggregates_by_location(client_with_engine):

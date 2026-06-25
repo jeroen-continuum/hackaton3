@@ -1,4 +1,4 @@
-import { Component, computed, input, linkedSignal, output } from '@angular/core';
+import { Component, computed, effect, input, linkedSignal, output } from '@angular/core';
 
 import { FilterDefaults, FilterParams } from '../../../core/models';
 
@@ -10,8 +10,13 @@ import { FilterDefaults, FilterParams } from '../../../core/models';
 export class FilterPanel {
   /** Defaults from the backend; also defines the available sectors/regions. */
   defaults = input<FilterDefaults | null>(null);
-  /** Emitted (with the assembled filters) when the user clicks Apply. */
+  /** Emitted (with the assembled filters) whenever any filter changes. */
   apply = output<FilterParams>();
+
+  constructor() {
+    // Filtering is cheap — apply immediately on any change instead of via a button.
+    effect(() => this.emit());
+  }
 
   readonly allRegions = ['BE', 'NL'];
 
@@ -32,6 +37,11 @@ export class FilterPanel {
   maxEmployees = linkedSignal(() => this.defaults()?.max_employees ?? 0);
   applySize = linkedSignal(() => this.defaults()?.apply_size ?? true);
   applyFinancial = linkedSignal(() => this.defaults()?.apply_financial ?? true);
+  minEbitda = linkedSignal(() => this.defaults()?.min_ebitda ?? 0);
+  maxEbitda = linkedSignal<number | null>(() => this.defaults()?.max_ebitda ?? null);
+  // EBITDA shown in millions of € — easier to read than raw 1500000.
+  minEbitdaM = computed(() => this.minEbitda() / 1e6);
+  maxEbitdaM = computed(() => (this.maxEbitda() == null ? null : this.maxEbitda()! / 1e6));
   selectedSectors = linkedSignal<string[]>(() => {
     const d = this.defaults();
     if (!d) return [];
@@ -61,6 +71,8 @@ export class FilterPanel {
       nace_exclude_prefixes: this.defaults()?.nace_exclude_prefixes ?? [],
       min_employees: Number(this.minEmployees()),
       max_employees: Number(this.maxEmployees()),
+      min_ebitda: Number(this.minEbitda()) || 0,
+      max_ebitda: this.maxEbitda(), // null = no upper bound
       apply_size: this.applySize(),
       apply_financial: this.applyFinancial(),
     });
@@ -74,6 +86,8 @@ export class FilterPanel {
       this.maxEmployees.set(d.max_employees);
       this.applySize.set(d.apply_size);
       this.applyFinancial.set(d.apply_financial);
+      this.minEbitda.set(d.min_ebitda);
+      this.maxEbitda.set(d.max_ebitda);
       const inc = new Set(d.nace_include_prefixes);
       this.selectedSectors.set(
         Object.entries(this.sectorPrefixes())
@@ -81,6 +95,5 @@ export class FilterPanel {
           .map(([sector]) => sector),
       );
     }
-    this.emit();
   }
 }

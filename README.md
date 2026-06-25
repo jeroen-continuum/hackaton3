@@ -29,6 +29,16 @@ python -m app.db.seed           # seed reference cases + one demo company
 uvicorn app.main:app --reload   # http://localhost:8000/docs
 ```
 
+> **Financials filters:** the size + financial filters need NBB-style data per
+> company. We have no real feed, so generate synthetic figures (deterministic,
+> weighted) for the whole company table:
+> ```bash
+> python -m app.db.seed_financials          # no-op if financials already exist
+> python -m app.db.seed_financials --force  # wipe + regenerate
+> ```
+> Run this after `load-kbo`. Without it, the Employees / Financial filters have
+> no effect (companies with no financial row pass straight through).
+
 **Frontend:**
 ```bash
 cd frontend

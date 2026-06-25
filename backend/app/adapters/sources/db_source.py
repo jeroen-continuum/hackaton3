@@ -11,7 +11,7 @@ from sqlmodel import Session, select
 from app.domain.filters import IcpFilter
 from app.domain.geo import bounding_box, haversine_km
 from app.domain.models import CompanyProfile
-from app.models.entities import Company as _Company
+from app.models.entities import Company as _Company, FinancialData as _FinData
 
 
 def apply_icp_filters(stmt, icp: IcpFilter):
@@ -46,6 +46,34 @@ def apply_icp_filters(stmt, icp: IcpFilter):
             _Company.latitude.between(lat_min, lat_max),
             _Company.longitude.between(lon_min, lon_max),
         )
+    return stmt
+
+
+def apply_financial_filters(stmt, icp: IcpFilter):
+    """Join FinancialData and apply the size + EBITDA-range predicates.
+
+    Mirrors IcpFilterPolicy.evaluate for the /stats count: when either
+    data-dependent filter is on, a company must have a financial row that
+    satisfies it (no row -> dropped, like evaluate's "no financial data").
+    No-op when both filters are off, so the count stays a pure Company query.
+    """
+    if not (icp.apply_size or icp.apply_financial):
+        return stmt
+    stmt = stmt.join(_FinData, _FinData.company_id == _Company.id)
+    if icp.apply_size:
+        stmt = stmt.where(
+            _FinData.employees.is_not(None),
+            _FinData.employees >= icp.min_employees,
+            _FinData.employees <= icp.max_employees,
+        )
+    if icp.apply_financial:
+        stmt = stmt.where(
+            _FinData.ebitda.is_not(None),
+            _FinData.ebitda > 0,
+            _FinData.ebitda >= icp.min_ebitda,
+        )
+        if icp.max_ebitda is not None:
+            stmt = stmt.where(_FinData.ebitda <= icp.max_ebitda)
     return stmt
 
 

@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy import func
 from sqlmodel import Session, select
 
-from app.adapters.sources.db_source import apply_icp_filters
+from app.adapters.sources.db_source import apply_financial_filters, apply_icp_filters
 from app.composition import build_container
 from app.core import constants
 from app.db.session import get_session
@@ -28,6 +28,8 @@ class FilterRequest(BaseModel):
     )
     min_employees: int = constants.MIN_EMPLOYEES
     max_employees: int = constants.MAX_EMPLOYEES
+    min_ebitda: float = constants.MIN_EBITDA
+    max_ebitda: Optional[float] = constants.MAX_EBITDA  # None = no upper bound
     apply_size: bool = True
     apply_financial: bool = True
     # Area filter — all None = no geographic restriction.
@@ -42,6 +44,8 @@ class FilterRequest(BaseModel):
             nace_exclude_prefixes=self.nace_exclude_prefixes,
             min_employees=self.min_employees,
             max_employees=self.max_employees,
+            min_ebitda=self.min_ebitda,
+            max_ebitda=self.max_ebitda,
             apply_size=self.apply_size,
             apply_financial=self.apply_financial,
             center_lat=self.center_lat,
@@ -65,6 +69,8 @@ def filter_defaults():
         "nace_exclude_prefixes": list(constants.EXCLUDED_NACE_PREFIXES),
         "min_employees": constants.MIN_EMPLOYEES,
         "max_employees": constants.MAX_EMPLOYEES,
+        "min_ebitda": constants.MIN_EBITDA,
+        "max_ebitda": constants.MAX_EBITDA,
         "apply_size": True,
         "apply_financial": True,
         # Map defaults: centred on Belgium, area filter off (null radius).
@@ -96,9 +102,11 @@ def stats(filters: FilterRequest, session: Session = Depends(get_session)):
     total = session.exec(
         select(func.count()).select_from(_C).where(_C.active == True)  # noqa: E712
     ).one()
-    matched = session.exec(
-        apply_icp_filters(select(func.count()).select_from(_C), icp)
-    ).one()
+    matched_stmt = apply_financial_filters(
+        apply_icp_filters(select(func.count(func.distinct(_C.id))).select_from(_C), icp),
+        icp,
+    )
+    matched = session.exec(matched_stmt).one()
     elapsed_ms = round((time.perf_counter() - start) * 1000, 1)
     return {
         "total": total,

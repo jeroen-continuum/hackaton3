@@ -58,6 +58,9 @@ export interface FilterParams {
   nace_exclude_prefixes: string[];
   min_employees: number;
   max_employees: number;
+  // Financial filter as an EBITDA range (€). max_ebitda null = no upper bound.
+  min_ebitda: number;
+  max_ebitda: number | null;
   apply_size: boolean;
   apply_financial: boolean;
   // Area filter — all omitted/null = no geographic restriction.

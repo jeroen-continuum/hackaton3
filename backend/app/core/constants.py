@@ -19,6 +19,12 @@ PROJECT_VALUE_MAX = 500_000
 # Project value must be < this fraction of annual EBITDA.
 MAX_PROJECT_TO_EBITDA_RATIO = 0.10
 
+# EBITDA the financial filter keeps, as a range. The default floor is the
+# EBITDA that comfortably covers the smallest project (PROJECT_VALUE_MIN /
+# MAX_PROJECT_TO_EBITDA_RATIO = 1.5M); MAX_EBITDA = None means no upper bound.
+MIN_EBITDA = PROJECT_VALUE_MIN / MAX_PROJECT_TO_EBITDA_RATIO
+MAX_EBITDA = None
+
 # Focus sectors by leading NACE digits (Finance, Insurance, Prof. services, Industry).
 FOCUS_NACE_PREFIXES = ["64", "65", "66", "69", "70", "78"]
 

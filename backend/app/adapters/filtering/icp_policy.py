@@ -27,12 +27,13 @@ class IcpFilterPolicy:
         if excluded:
             return Decision(passes=False, reason=reason)
 
-        # Size + financial filters need NBB data. When it's absent we treat the
-        # company as "unknown" rather than disqualified: the data-dependent
-        # sub-filters can't be evaluated, but NACE/region already passed, so the
-        # company stays a candidate. (Otherwise a DB without financials would
-        # filter every company out and rank would return nothing.)
+        # Size + financial filters need NBB data. When it's absent: if either
+        # data-dependent filter is switched ON, the company can't satisfy it, so
+        # it's dropped. If both are OFF, NACE/region already passed and the
+        # company stays a candidate.
         if financials is None:
+            if self._icp.apply_size or self._icp.apply_financial:
+                return Decision(passes=False, reason="no financial data")
             return Decision(passes=True)
 
         legacy_fin = _FinData(

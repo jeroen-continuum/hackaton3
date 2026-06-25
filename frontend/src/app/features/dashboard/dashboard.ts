@@ -112,6 +112,8 @@ export class Dashboard {
       nace_exclude_prefixes: d.nace_exclude_prefixes,
       min_employees: d.min_employees,
       max_employees: d.max_employees,
+      min_ebitda: d.min_ebitda,
+      max_ebitda: d.max_ebitda,
       apply_size: d.apply_size,
       apply_financial: d.apply_financial,
     };

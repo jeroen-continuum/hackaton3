@@ -36,6 +36,18 @@
     </div>
   </div>
 
+  <div class="filter-group">
+    <span class="label">EBITDA (€M)</span>
+    <div class="range">
+      <input type="number" min="0" step="0.1" [value]="minEbitdaM()"
+             (input)="minEbitda.set(($any($event.target).valueAsNumber || 0) * 1e6)" />
+      <span>–</span>
+      <input type="number" min="0" step="0.1" placeholder="no max"
+             [value]="maxEbitdaM()"
+             (input)="maxEbitda.set($any($event.target).valueAsNumber ? $any($event.target).valueAsNumber * 1e6 : null)" />
+    </div>
+  </div>
+
   <div class="filter-group toggles">
     <label class="chip">
       <input type="checkbox" [checked]="applySize()"
@@ -50,7 +62,6 @@
   </div>
 
   <div class="actions">
-    <button class="apply" (click)="emit()">Apply</button>
     <button class="reset" (click)="reset()">Reset</button>
   </div>
 </section>

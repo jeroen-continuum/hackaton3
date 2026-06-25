@@ -18,14 +18,20 @@ def passes_size(fin: FinancialData, icp: IcpFilter | None = None) -> bool:
 
 
 def passes_financial_fit(fin: FinancialData, icp: IcpFilter | None = None) -> bool:
-    """Project value must be < max_project_to_ebitda_ratio of annual EBITDA."""
+    """EBITDA must fall within the configured [min_ebitda, max_ebitda] range.
+
+    The default min_ebitda (1.5M) is the EBITDA that comfortably covers the
+    smallest project, so the requirement behaviour is unchanged; users can widen
+    or cap the range per request. max_ebitda None = no upper bound.
+    """
     icp = icp or IcpFilter.default()
     if not icp.apply_financial:
         return True
     if not fin.ebitda or fin.ebitda <= 0:
         return False
-    headroom = fin.ebitda * icp.max_project_to_ebitda_ratio
-    return headroom >= icp.project_value_min
+    if fin.ebitda < icp.min_ebitda:
+        return False
+    return icp.max_ebitda is None or fin.ebitda <= icp.max_ebitda
 
 
 def is_excluded(company: Company, icp: IcpFilter | None = None) -> tuple[bool, str | None]:

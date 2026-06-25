@@ -20,7 +20,7 @@ class Settings(BaseSettings):
     # Hackathon: when NBB is OFF and this is ON, financials are synthesised
     # (realistic weighted dummy data) instead of read from the DB. See
     # adapters/sources/fake_financials.py.
-    use_fake_financials: bool = True
+    use_fake_financials: bool = False
     enable_vdab_vacancies: bool = False
     enable_wappalyzer_tech: bool = False
     enable_csv_connections: bool = False

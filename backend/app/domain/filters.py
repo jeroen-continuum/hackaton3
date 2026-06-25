@@ -27,6 +27,9 @@ class IcpFilter:
     max_employees: int = constants.MAX_EMPLOYEES
     project_value_min: float = constants.PROJECT_VALUE_MIN
     max_project_to_ebitda_ratio: float = constants.MAX_PROJECT_TO_EBITDA_RATIO
+    # Financial filter as an adjustable EBITDA range (€). max_ebitda None = no cap.
+    min_ebitda: float = constants.MIN_EBITDA
+    max_ebitda: Optional[float] = constants.MAX_EBITDA
     # Toggles — disable the financial-data-dependent filters entirely.
     apply_size: bool = True
     apply_financial: bool = True
