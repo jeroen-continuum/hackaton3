@@ -4,10 +4,17 @@ from app.outreach import prompts
 from app.outreach.llm import complete
 
 
+def _context_block(website_context: str) -> str:
+    """Render optional crawled-site facts into a prompt line (empty if none)."""
+    if not website_context:
+        return ""
+    return "Gebruik deze feiten van hun website:\n" + website_context[:4000]
+
+
 class LlmOutreachGenerator:
     """Generates personalised outreach assets (email + teaser) using Claude."""
 
-    def email(self, company: CompanyProfile, cases: list[dict]) -> dict:
+    def email(self, company: CompanyProfile, cases: list[dict], website_context: str = "") -> dict:
         """Generate FOMO email for a company based on reference cases.
 
         Args:
@@ -25,11 +32,12 @@ class LlmOutreachGenerator:
             company=company.name,
             sector=company.sector or "their sector",
             cases=case_text,
+            context=_context_block(website_context),
         )
         body = complete(prompts.SYSTEM, prompt)
         return {"subject": f"De nieuwe lead voor {company.name}", "body": body}
 
-    def teaser(self, company: CompanyProfile, cases: list[dict]) -> dict:
+    def teaser(self, company: CompanyProfile, cases: list[dict], website_context: str = "") -> dict:
         """Generate gated teaser content for a company.
 
         Args:
@@ -46,7 +54,9 @@ class LlmOutreachGenerator:
         )
         full = complete(
             prompts.SYSTEM,
-            prompts.TEASER_PROMPT.format(sector=sector, cases=case_text),
+            prompts.TEASER_PROMPT.format(
+                sector=sector, cases=case_text, context=_context_block(website_context)
+            ),
             max_tokens=2048,
         )
         preview = full[:800]

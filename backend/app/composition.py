@@ -27,6 +27,7 @@ from app.adapters.sources.db_vacancies import DbVacancyProvider as _DbVacancies
 from app.adapters.sources.db_tech import DbTechProvider as _DbTech
 from app.adapters.outreach.llm_outreach import LlmOutreachGenerator as _LlmOutreachGenerator
 from app.adapters.sources.apollo import ApolloContactProvider
+from app.adapters.sources.crawl4ai_crawler import Crawl4aiCrawler, NullCrawler
 from app.core.config import settings
 from app.domain.filters import IcpFilter
 
@@ -41,6 +42,7 @@ class Container:
     rolling10: Rolling10
     solution_cases: SolutionCaseRepository
     contacts: ApolloContactProvider
+    crawler: object  # WebCrawler port (Crawl4aiCrawler | NullCrawler)
 
 
 def build_container(session: Session, icp: IcpFilter | None = None) -> Container:
@@ -86,6 +88,7 @@ def build_container(session: Session, icp: IcpFilter | None = None) -> Container
     rolling10 = Rolling10(repo=repo)
     solution_cases = SolutionCaseRepository(session=session)
     contacts = ApolloContactProvider(enabled=settings.enable_apollo_contacts)
+    crawler = Crawl4aiCrawler() if settings.enable_web_crawl else NullCrawler()
     return Container(
         pipeline=pipeline,
         scorer=scorer,
@@ -93,4 +96,5 @@ def build_container(session: Session, icp: IcpFilter | None = None) -> Container
         rolling10=rolling10,
         solution_cases=solution_cases,
         contacts=contacts,
+        crawler=crawler,
     )

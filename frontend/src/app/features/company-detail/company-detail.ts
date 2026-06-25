@@ -16,6 +16,7 @@ export class CompanyDetailPage {
   private api = inject(ApiService);
   id = input.required<string>(); // from route param (withComponentInputBinding)
   company = signal<CompanyDetail | null>(null);
+  generatingBrief = signal(false);
 
   constructor() {
     effect(() => {
@@ -26,5 +27,17 @@ export class CompanyDetailPage {
   /** Re-fetch the company so the heatmap (warm_connection) + rank reflect a new tie. */
   reload() {
     this.api.company(Number(this.id())).subscribe((c) => this.company.set(c));
+  }
+
+  /** Crawl the website (cached after first run) + generate the AI brief, then reload. */
+  generateBrief() {
+    this.generatingBrief.set(true);
+    this.api.generateBrief(Number(this.id())).subscribe({
+      next: () => {
+        this.generatingBrief.set(false);
+        this.reload();
+      },
+      error: () => this.generatingBrief.set(false),
+    });
   }
 }

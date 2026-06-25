@@ -8,8 +8,8 @@ class GenerateOutreach:
         self._generator = generator
         self._repo = repo
 
-    def email(self, profile: CompanyProfile, cases: list[dict]) -> dict:
-        return self._generator.email(profile, cases)
+    def email(self, profile: CompanyProfile, cases: list[dict], website_context: str = "") -> dict:
+        return self._generator.email(profile, cases, website_context)
 
-    def teaser(self, profile: CompanyProfile, cases: list[dict]) -> dict:
-        return self._generator.teaser(profile, cases)
+    def teaser(self, profile: CompanyProfile, cases: list[dict], website_context: str = "") -> dict:
+        return self._generator.teaser(profile, cases, website_context)

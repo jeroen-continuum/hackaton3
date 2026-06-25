@@ -25,6 +25,10 @@ class Settings(BaseSettings):
     enable_wappalyzer_tech: bool = False
     enable_csv_connections: bool = False
     enable_apollo_contacts: bool = False
+    # When ON, the company brief crawls the live website with Crawl4AI (headless
+    # Chromium — run `crawl4ai-setup` once). When OFF, the brief uses only the
+    # cached crawl (if any) + financials/profile, so demos/tests need no browser.
+    enable_web_crawl: bool = False
 
     apollo_api_key: str = ""
     hunter_api_key: str = ""

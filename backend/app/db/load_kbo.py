@@ -260,7 +260,7 @@ def load_kbo(data_dir: str | None = None) -> int:
 # reload replaces the whole pond, so these are dropped and recreated from the
 # current models — which also fixes schema drift, since create_all never adds
 # new columns to a table that already exists. SolutionCase seeds are untouched.
-_POND_TABLES = "score, contact, financialdata, outreachasset, techstack, vacancy, company"
+_POND_TABLES = "score, contact, financialdata, outreachasset, techstack, vacancy, websitecrawl, companybrief, company"
 
 
 def _reset_pond_tables() -> None:

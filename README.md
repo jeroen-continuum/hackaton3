@@ -39,6 +39,18 @@ uvicorn app.main:app --reload   # http://localhost:8000/docs
 > Run this after `load-kbo`. Without it, the Employees / Financial filters have
 > no effect (companies with no financial row pass straight through).
 
+> **AI "Why this company" brief:** `POST /companies/{id}/brief/generate` crawls
+> the company's website, caches the page in the DB (`websitecrawl` table, crawled
+> once), and uses it + the financials to generate reasons / financial summary /
+> signals (`companybrief` table), surfaced on the company detail view. The same
+> cached page also personalises the outreach email/teaser.
+> Crawling is OFF by default (`ENABLE_WEB_CRAWL=false`) — the brief then runs from
+> the cache + financials only, no browser needed. To crawl live sites:
+> ```bash
+> pip install crawl4ai && crawl4ai-setup   # one-time: installs headless Chromium
+> ENABLE_WEB_CRAWL=true uvicorn app.main:app --reload
+> ```
+
 **Frontend:**
 ```bash
 cd frontend

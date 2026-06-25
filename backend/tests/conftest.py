@@ -65,10 +65,10 @@ class FakeFilterPolicy:
 
 # Port: OutreachGenerator
 class FakeOutreachGenerator:
-    def email(self, company: CompanyProfile, cases: list[dict]) -> dict:
+    def email(self, company: CompanyProfile, cases: list[dict], website_context: str = "") -> dict:
         return {"subject": "Test", "body": "Test body"}
 
-    def teaser(self, company: CompanyProfile, cases: list[dict]) -> dict:
+    def teaser(self, company: CompanyProfile, cases: list[dict], website_context: str = "") -> dict:
         return {"title": "Test", "preview": "Preview", "full": "Full content"}
 
 

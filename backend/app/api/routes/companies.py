@@ -13,7 +13,8 @@ from app.core import constants
 from app.db.session import get_session
 from app.domain.filters import IcpFilter
 from app.domain.geo import haversine_km
-from app.models import Company as _C, Score as _S
+from app.application.company_brief import CompanyBriefService
+from app.models import Company as _C, Score as _S, CompanyBrief as _CB, WebsiteCrawl as _WC
 
 router = APIRouter(prefix="/companies", tags=["companies"])
 
@@ -156,12 +157,28 @@ def density(session: Session = Depends(get_session)):
     return [{"lat": lat, "lon": lon, "count": count} for lat, lon, count in rows]
 
 
+def _brief_payload(brief: _CB | None, crawl: _WC | None) -> dict | None:
+    """Shape a CompanyBrief (+ its crawl status) for the API, or None if absent."""
+    if brief is None:
+        return None
+    return {
+        "why_company": brief.why_company,
+        "financial_summary": brief.financial_summary,
+        "signals": brief.signals,
+        "generated_at": brief.generated_at.isoformat(),
+        "crawl_status": crawl.status if crawl else None,
+        "crawl_url": crawl.url if crawl else None,
+    }
+
+
 @router.get("/{company_id}")
 def detail(company_id: int, session: Session = Depends(get_session)):
     company = session.get(_C, company_id)
     if not company:
         raise HTTPException(404, "Company not found")
     score = session.exec(select(_S).where(_S.company_id == company_id)).first()
+    brief = session.exec(select(_CB).where(_CB.company_id == company_id)).first()
+    crawl = session.exec(select(_WC).where(_WC.company_id == company_id)).first()
     return {
         "id": company.id,
         "name": company.name,
@@ -177,4 +194,19 @@ def detail(company_id: int, session: Session = Depends(get_session)):
         "rank": score.rank if score else None,
         "score": score.total if score else None,
         "breakdown": score.breakdown if score else {},
+        "brief": _brief_payload(brief, crawl),
     }
+
+
+@router.post("/{company_id}/brief/generate")
+async def generate_brief(company_id: int, session: Session = Depends(get_session)):
+    """Crawl the company's website (cached after first run) and generate a
+    'Why this company' brief: reasons, financial summary, and signals."""
+    company = session.get(_C, company_id)
+    if not company:
+        raise HTTPException(404, "Company not found")
+    container = build_container(session)
+    service = CompanyBriefService(session, container.crawler)
+    brief = await service.build(company_id)
+    crawl = session.exec(select(_WC).where(_WC.company_id == company_id)).first()
+    return _brief_payload(brief, crawl)

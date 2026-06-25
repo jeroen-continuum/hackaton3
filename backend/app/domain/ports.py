@@ -58,8 +58,14 @@ class FilterPolicy(Protocol):
 @runtime_checkable
 class OutreachGenerator(Protocol):
     """Generates personalised outreach assets using an LLM."""
-    def email(self, company: CompanyProfile, cases: list[dict]) -> dict: ...
-    def teaser(self, company: CompanyProfile, cases: list[dict]) -> dict: ...
+    def email(self, company: CompanyProfile, cases: list[dict], website_context: str = "") -> dict: ...
+    def teaser(self, company: CompanyProfile, cases: list[dict], website_context: str = "") -> dict: ...
+
+
+@runtime_checkable
+class WebCrawler(Protocol):
+    """Crawls a single web page and returns its content (markdown + title)."""
+    async def crawl(self, url: str) -> dict | None: ...
 
 
 @runtime_checkable

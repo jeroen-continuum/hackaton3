@@ -5,7 +5,7 @@ from sqlmodel import Session, select
 from app.composition import build_container
 from app.db.session import get_session
 from app.domain.models import CompanyProfile
-from app.models import Company as _C, OutreachAsset as _OA
+from app.models import Company as _C, OutreachAsset as _OA, WebsiteCrawl as _WC
 
 router = APIRouter(prefix="/companies", tags=["outreach"])
 
@@ -39,8 +39,10 @@ def generate_outreach(company_id: int, session: Session = Depends(get_session)):
         sector=company.sector,
         website=company.website,
     )
-    email_result = container.outreach.email(profile, cases)
-    teaser_result = container.outreach.teaser(profile, cases)
+    crawl = session.exec(select(_WC).where(_WC.company_id == company_id)).first()
+    website_context = (crawl.markdown if crawl else None) or ""
+    email_result = container.outreach.email(profile, cases, website_context)
+    teaser_result = container.outreach.teaser(profile, cases, website_context)
     existing = session.exec(select(_OA).where(_OA.company_id == company_id)).first()
     if existing:
         existing.email_subject = email_result["subject"]

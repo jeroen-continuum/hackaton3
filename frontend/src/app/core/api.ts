@@ -5,6 +5,7 @@ import { Observable } from 'rxjs';
 import {
   CompanyListItem, CompanyDetail, OutreachAsset, Contact, FilterParams, FilterDefaults,
   PondStats, DensityPoint, Employee, Connection, CompanyConnections, ConnectionType,
+  CompanyBrief,
 } from './models';
 
 const BASE = 'http://localhost:8000';
@@ -49,6 +50,10 @@ export class ApiService {
     return this.http.post<{ status: string; company_id: number }>(
       `${BASE}/companies/${id}/outreach/generate`, {}
     );
+  }
+
+  generateBrief(id: number): Observable<CompanyBrief> {
+    return this.http.post<CompanyBrief>(`${BASE}/companies/${id}/brief/generate`, {});
   }
 
   getContacts(id: number): Observable<{ contacts: Contact[]; persisted: boolean }> {

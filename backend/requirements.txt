@@ -9,3 +9,6 @@ pandas>=2.2
 psycopg[binary]>=3.2
 pytest>=8.0
 respx>=0.22
+# Optional: only needed when ENABLE_WEB_CRAWL=true (run `crawl4ai-setup` once
+# afterwards to install the headless Chromium it drives).
+crawl4ai>=0.4

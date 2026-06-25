@@ -19,6 +19,15 @@ export interface CompanyListItem {
   longitude: number | null;
 }
 
+export interface CompanyBrief {
+  why_company: string[];
+  financial_summary: string | null;
+  signals: string[];
+  generated_at: string;
+  crawl_status: string | null;
+  crawl_url: string | null;
+}
+
 export interface CompanyDetail {
   id: number;
   name: string;
@@ -36,6 +45,7 @@ export interface CompanyDetail {
   vacancies: { title: string; is_it_role: boolean }[];
   tech: { technologies: string[]; legacy_score: number } | null;
   score: { total: number; rank: number; breakdown: ScoreBreakdown } | null;
+  brief?: CompanyBrief | null;
 }
 
 export interface Employee {

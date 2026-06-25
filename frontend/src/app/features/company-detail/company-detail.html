@@ -6,9 +6,25 @@
     <span class="sub">{{ c.sector }} · NACE {{ c.nace_code }} · {{ c.region }} · {{ c.enterprise_number }}</span>
   </header>
 
+  <div class="brief-bar">
+    <button (click)="generateBrief()" [disabled]="generatingBrief()">
+      {{ generatingBrief() ? 'Generating…' : (c.brief ? 'Regenerate AI brief' : 'Generate AI brief') }}
+    </button>
+    @if (c.brief?.crawl_status) {
+      <span class="sub">website crawl: {{ c.brief?.crawl_status }}</span>
+    }
+  </div>
+
   <div class="grid">
     <section class="panel">
       <h2>Why this company</h2>
+      @if (c.brief?.why_company?.length) {
+        <ul>
+          @for (r of c.brief?.why_company; track r) {
+            <li>{{ r }}</li>
+          }
+        </ul>
+      }
       @if (c.score) {
         <app-heatmap [breakdown]="c.score.breakdown" />
       }
@@ -16,6 +32,9 @@
 
     <section class="panel">
       <h2>Financials</h2>
+      @if (c.brief?.financial_summary) {
+        <p>{{ c.brief?.financial_summary }}</p>
+      }
       @if (c.financials) {
         <ul>
           <li>Employees: {{ c.financials.employees }}</li>
@@ -38,6 +57,13 @@
 
     <section class="panel">
       <h2>Signals</h2>
+      @if (c.brief?.signals?.length) {
+        <ul>
+          @for (s of c.brief?.signals; track s) {
+            <li>{{ s }}</li>
+          }
+        </ul>
+      }
       <h4>Open vacancies</h4>
       <ul>
         @for (v of c.vacancies; track v.title) {

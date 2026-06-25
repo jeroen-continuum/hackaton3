@@ -9,6 +9,8 @@ from app.models.entities import (
     SolutionCase,
     Employee,
     Connection,
+    WebsiteCrawl,
+    CompanyBrief,
 )
 
 __all__ = [
@@ -22,4 +24,6 @@ __all__ = [
     "SolutionCase",
     "Employee",
     "Connection",
+    "WebsiteCrawl",
+    "CompanyBrief",
 ]

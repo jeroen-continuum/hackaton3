@@ -4,7 +4,7 @@ A Company is the spine. Each enrichment source hangs off it 1:1 or 1:N.
 Score + OutreachAsset are produced by the pipeline and read by the web app.
 JSON columns hold semi-structured detail (e.g. the per-criterion heatmap).
 """
-from datetime import date
+from datetime import date, datetime
 from typing import Optional
 from sqlmodel import SQLModel, Field, Relationship, Column, JSON
 
@@ -139,3 +139,24 @@ class SolutionCase(SQLModel, table=True):
     title: str
     summary: str
     impact_metric: Optional[str] = None     # e.g. "+18% margin", "-30% manual work"
+
+
+class WebsiteCrawl(SQLModel, table=True):
+    """Cached Crawl4AI fetch of a company's website — so we crawl once, not per view."""
+    id: Optional[int] = Field(default=None, primary_key=True)
+    company_id: int = Field(foreign_key="company.id", index=True, unique=True)
+    url: str                                 # normalised URL actually fetched
+    markdown: Optional[str] = None           # the cache payload
+    title: Optional[str] = None
+    status: str = "ok"                       # ok | empty | error
+    crawled_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class CompanyBrief(SQLModel, table=True):
+    """LLM-generated 'Why this company' brief, grounded in the website crawl + financials."""
+    id: Optional[int] = Field(default=None, primary_key=True)
+    company_id: int = Field(foreign_key="company.id", index=True, unique=True)
+    why_company: list = Field(default_factory=list, sa_column=Column(JSON))  # [reason, ...]
+    financial_summary: Optional[str] = None
+    signals: list = Field(default_factory=list, sa_column=Column(JSON))      # [signal, ...]
+    generated_at: datetime = Field(default_factory=datetime.utcnow)
