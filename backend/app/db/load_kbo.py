@@ -241,16 +241,49 @@ def load_kbo(data_dir: str | None = None) -> int:
     geocoded = int(df["latitude"].notna().sum()) if len(df) else 0
     print(f"Inserting {len(df):,} companies ({geocoded:,} with map coordinates) ...")
 
-    # Clear any prior companies/scores (demo seed or earlier load).
-    with Session(engine) as s:
-        s.exec(delete(Score))
-        s.exec(delete(Company))
-        s.commit()
-
-    # chunksize keeps params (rows * cols) under the SQLite variable limit too.
-    df.to_sql("company", engine, if_exists="append", index=False, chunksize=3000, method="multi")
+    if engine.dialect.name == "postgresql":
+        _reset_pond_tables()
+        _copy_companies(df)
+    else:
+        # SQLite fallback: clear + chunked multi-insert (no COPY).
+        with Session(engine) as s:
+            s.exec(delete(Score))
+            s.exec(delete(Company))
+            s.commit()
+        df.to_sql("company", engine, if_exists="append", index=False,
+                  chunksize=3000, method="multi")
     print(f"Loaded {len(df):,} companies into the Company table.")
     return len(df)
+
+
+# Company table + its (empty, pre-ingest) enrichment dependents. A full KBO
+# reload replaces the whole pond, so these are dropped and recreated from the
+# current models — which also fixes schema drift, since create_all never adds
+# new columns to a table that already exists. SolutionCase seeds are untouched.
+_POND_TABLES = "score, contact, financialdata, outreachasset, techstack, vacancy, company"
+
+
+def _reset_pond_tables() -> None:
+    with engine.begin() as conn:
+        conn.exec_driver_sql(f"DROP TABLE IF EXISTS {_POND_TABLES} CASCADE")
+    init_db()
+
+
+def _copy_companies(df: pd.DataFrame) -> None:
+    """Bulk-load via Postgres COPY — orders of magnitude faster than INSERT."""
+    cols = list(df.columns)
+    # NaN -> None so COPY writes SQL NULL, not the literal string 'nan'.
+    clean = df.astype(object).where(df.notna(), None)
+    raw = engine.raw_connection()
+    try:
+        with raw.cursor() as cur, cur.copy(
+            f'COPY company ({", ".join(cols)}) FROM STDIN'
+        ) as copy:
+            for row in clean.itertuples(index=False, name=None):
+                copy.write_row(row)
+        raw.commit()
+    finally:
+        raw.close()
 
 
 if __name__ == "__main__":
