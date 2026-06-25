@@ -1,8 +1,13 @@
-"""Seed reference data + 10 demo companies (the vertical slice).
+"""Seed reference data; optionally 10 demo companies (the vertical slice).
 
-Run: python -m app.db.seed
-Lets the whole stack be demoed before any real connector exists.
+Run: python -m app.db.seed            # solution cases only (real data via load_kbo)
+     python -m app.db.seed --demo     # also insert the 10 demo companies + scores
+
+Real companies are loaded with `python -m app.db.load_kbo`. The demo path is kept
+for quick stack demos before a KBO dump is available.
 """
+import sys
+
 from sqlmodel import Session, select
 
 from app.db.session import engine, init_db
@@ -95,28 +100,36 @@ def seed_solution_cases(session: Session) -> None:
     session.commit()
 
 
-def seed() -> None:
+def seed_demo_companies(s: Session) -> None:
+    """Insert the 10 demo companies + scores (only when no companies exist)."""
+    if s.exec(select(Company)).first():
+        print("DB already has companies; skipping demo companies.")
+        return
+    for i, cd in enumerate(DEMO_COMPANIES):
+        company = Company(**cd)
+        s.add(company)
+        s.flush()  # get company.id
+        score_data = DEMO_SCORES[i]
+        s.add(Score(
+            company_id=company.id,
+            total=score_data["total"],
+            rank=score_data["rank"],
+            breakdown=score_data["breakdown"],
+            contacted=False,
+        ))
+    s.commit()
+    print(f"Seeded {len(DEMO_COMPANIES)} demo companies.")
+
+
+def seed(demo: bool = False) -> None:
     init_db()
     with Session(engine) as s:
         seed_solution_cases(s)
-        if s.exec(select(Company)).first():
-            print("DB already seeded; skipping companies.")
-            return
-        for i, cd in enumerate(DEMO_COMPANIES):
-            company = Company(**cd)
-            s.add(company)
-            s.flush()  # get company.id
-            score_data = DEMO_SCORES[i]
-            s.add(Score(
-                company_id=company.id,
-                total=score_data["total"],
-                rank=score_data["rank"],
-                breakdown=score_data["breakdown"],
-                contacted=False,
-            ))
-        s.commit()
-        print(f"Seeded {len(DEMO_COMPANIES)} demo companies + solution cases.")
+        if demo:
+            seed_demo_companies(s)
+        else:
+            print("Seeded solution cases. Run `python -m app.db.load_kbo` for real companies.")
 
 
 if __name__ == "__main__":
-    seed()
+    seed(demo="--demo" in sys.argv)

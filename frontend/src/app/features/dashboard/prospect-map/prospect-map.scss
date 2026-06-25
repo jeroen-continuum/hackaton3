@@ -1,0 +1,59 @@
+.map-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.map-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+
+  .label {
+    font-size: 11px;
+    text-transform: uppercase;
+    color: #6b7280;
+    letter-spacing: 0.04em;
+  }
+
+  input[type='range'] {
+    width: 200px;
+  }
+
+  .radius-readout {
+    font-size: 13px;
+    font-weight: 600;
+    min-width: 90px;
+  }
+
+  .clear {
+    font-size: 12px;
+    padding: 2px 8px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    background: #fff;
+    cursor: pointer;
+  }
+
+  .hint {
+    font-size: 12px;
+    color: #9ca3af;
+  }
+}
+
+.map {
+  height: 420px;
+  width: 100%;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+}
+
+// Draggable center marker (divIcon — no external image).
+:host ::ng-deep .center-pin {
+  background: #ef4444;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.4);
+  cursor: grab;
+}

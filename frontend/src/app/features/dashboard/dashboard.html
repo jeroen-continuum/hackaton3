@@ -3,6 +3,13 @@
   <p>Top prospects by buyer intent &amp; impact. Contact one → the next rolls in.</p>
 </header>
 
+<app-filter-panel [defaults]="defaults()" (apply)="applyFilters($event)" />
+
+<app-prospect-map
+  [companies]="companies()"
+  [defaultCenter]="mapCenter()"
+  (areaChange)="onAreaChange($event)" />
+
 @if (loading()) {
   <p class="muted">Loading…</p>
 } @else if (companies().length === 0) {

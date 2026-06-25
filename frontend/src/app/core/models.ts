@@ -14,6 +14,9 @@ export interface CompanyListItem {
   rank: number;
   score: number;
   breakdown: ScoreBreakdown;
+  municipality: string | null;
+  latitude: number | null;
+  longitude: number | null;
 }
 
 export interface CompanyDetail {
@@ -24,6 +27,10 @@ export interface CompanyDetail {
   nace_code: string | null;
   region: string;
   website: string | null;
+  address?: string | null;
+  municipality?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
   financials: { employees?: number; revenue?: number; ebitda?: number } | null;
   contacts: { name: string; title?: string; email?: string }[];
   vacancies: { title: string; is_it_role: boolean }[];
@@ -43,4 +50,32 @@ export interface Contact {
   name: string;
   title: string;
   email: string;
+}
+
+export interface FilterParams {
+  regions: string[];
+  nace_include_prefixes: string[];
+  nace_exclude_prefixes: string[];
+  min_employees: number;
+  max_employees: number;
+  apply_size: boolean;
+  apply_financial: boolean;
+  // Area filter — all omitted/null = no geographic restriction.
+  center_lat?: number | null;
+  center_lon?: number | null;
+  radius_km?: number | null;
+}
+
+/** A chosen area (center + radius), or null when the area filter is off. */
+export interface Area {
+  center_lat: number;
+  center_lon: number;
+  radius_km: number;
+}
+
+export interface FilterDefaults extends FilterParams {
+  center_lat: number;
+  center_lon: number;
+  available_sectors: string[];
+  nace_sector_labels: Record<string, string>;
 }

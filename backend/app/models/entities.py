@@ -17,6 +17,11 @@ class Company(SQLModel, table=True):
     sector: Optional[str] = None
     website: Optional[str] = None
     address: Optional[str] = None
+    zipcode: Optional[str] = Field(default=None, index=True)
+    municipality: Optional[str] = None
+    # Postal-code centroid (GeoNames); drives the area / radius filter + map.
+    latitude: Optional[float] = Field(default=None, index=True)
+    longitude: Optional[float] = Field(default=None, index=True)
     active: bool = True
 
     # pipeline status: pond -> filtered -> enriched -> scored

@@ -1,0 +1,15 @@
+<section class="map-panel">
+  <div class="map-controls">
+    <span class="label">Area</span>
+    <input type="range" min="0" max="100" step="5" [value]="radiusKm()"
+           (input)="setRadius($any($event.target).valueAsNumber)" />
+    <span class="radius-readout">
+      @if (radiusKm() > 0) { within {{ radiusKm() }} km } @else { off }
+    </span>
+    @if (radiusKm() > 0) {
+      <button class="clear" (click)="setRadius(0)">Clear</button>
+    }
+    <span class="hint">Drag the marker or click the map to move the center.</span>
+  </div>
+  <div #map class="map"></div>
+</section>

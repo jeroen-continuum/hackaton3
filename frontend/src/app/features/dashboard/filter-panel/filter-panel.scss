@@ -1,0 +1,29 @@
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 20px;
+  padding: 16px;
+  margin-bottom: 20px;
+  border: 1px solid #e3e3e3;
+  border-radius: 12px;
+  background: #f8fafc;
+}
+.filter-group { display: flex; flex-direction: column; gap: 8px; }
+.label { font-size: 12px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: .04em; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 10px; border: 1px solid #cbd5e1; border-radius: 999px;
+  background: #fff; font-size: 13px; cursor: pointer; user-select: none;
+}
+.chip input { accent-color: #2563eb; }
+.toggles { flex-direction: row; gap: 12px; }
+.range { display: flex; align-items: center; gap: 8px; }
+.range input { width: 80px; padding: 6px 8px; border: 1px solid #cbd5e1; border-radius: 8px; }
+.actions { display: flex; gap: 8px; margin-left: auto; }
+.actions button { padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; }
+.apply { border: 1px solid #2563eb; background: #2563eb; color: #fff; }
+.apply:hover { background: #1d4ed8; }
+.reset { border: 1px solid #cbd5e1; background: #fff; color: #475569; }
+.reset:hover { background: #f1f5f9; }

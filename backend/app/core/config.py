@@ -8,6 +8,11 @@ class Settings(BaseSettings):
     db_url: str = "sqlite:///./data/app.db"
     data_dir: str = "./data"
 
+    # Max companies to enrich + score per pipeline run. The DB holds every
+    # active company, but NBB/VDAB/Wappalyzer cost one API call each, so the
+    # filter-selected candidate set is capped before enrichment.
+    max_pond_enrich: int = 500
+
     apollo_api_key: str = ""
     hunter_api_key: str = ""
     vdab_api_key: str = ""

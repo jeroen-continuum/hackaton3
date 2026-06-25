@@ -12,6 +12,9 @@ class CompanyProfile:
     nace_code: Optional[str] = None
     sector: Optional[str] = None
     website: Optional[str] = None
+    municipality: Optional[str] = None
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
 
 
 @dataclass(frozen=True)

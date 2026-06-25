@@ -64,3 +64,32 @@ def test_fails_insufficient_ebitda(policy, valid_profile):
 def test_returns_decision_type(policy, valid_profile, valid_financials):
     result = policy.evaluate(valid_profile, valid_financials)
     assert isinstance(result, Decision)
+
+
+# --- adjustable IcpFilter ---
+from app.domain.filters import IcpFilter
+
+
+def test_custom_employee_range(valid_profile):
+    policy = IcpFilterPolicy(IcpFilter(min_employees=10, max_employees=50))
+    fin = Financials(employees=20, ebitda=9_500_000)
+    assert policy.evaluate(valid_profile, fin).passes is True
+
+
+def test_disable_size_and_financial_passes_without_financials(valid_profile):
+    policy = IcpFilterPolicy(IcpFilter(apply_size=False, apply_financial=False))
+    assert policy.evaluate(valid_profile, None).passes is True
+
+
+def test_disable_financial_ignores_low_ebitda(valid_profile):
+    policy = IcpFilterPolicy(IcpFilter(apply_financial=False))
+    fin = Financials(employees=250, ebitda=1_000)  # tiny EBITDA
+    assert policy.evaluate(valid_profile, fin).passes is True
+
+
+def test_custom_exclusion_prefix():
+    policy = IcpFilterPolicy(IcpFilter(nace_exclude_prefixes=["64"]))
+    profile = CompanyProfile(enterprise_number="1", name="Bank", nace_code="64190")
+    result = policy.evaluate(profile, Financials(employees=250, ebitda=9_500_000))
+    assert result.passes is False
+    assert "64" in result.reason

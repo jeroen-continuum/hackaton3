@@ -2,7 +2,9 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-import { CompanyListItem, CompanyDetail, OutreachAsset, Contact } from './models';
+import {
+  CompanyListItem, CompanyDetail, OutreachAsset, Contact, FilterParams, FilterDefaults,
+} from './models';
 
 const BASE = 'http://localhost:8000';
 
@@ -12,6 +14,14 @@ export class ApiService {
 
   top10(): Observable<CompanyListItem[]> {
     return this.http.get<CompanyListItem[]>(`${BASE}/companies/top10`);
+  }
+
+  filterDefaults(): Observable<FilterDefaults> {
+    return this.http.get<FilterDefaults>(`${BASE}/companies/filters/defaults`);
+  }
+
+  rank(filters: FilterParams): Observable<CompanyListItem[]> {
+    return this.http.post<CompanyListItem[]>(`${BASE}/companies/rank`, filters);
   }
 
   company(id: number): Observable<CompanyDetail> {

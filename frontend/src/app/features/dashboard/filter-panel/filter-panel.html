@@ -1,0 +1,56 @@
+<section class="filters">
+  <div class="filter-group">
+    <span class="label">Region</span>
+    <div class="chips">
+      @for (r of allRegions; track r) {
+        <label class="chip">
+          <input type="checkbox" [checked]="regions().includes(r)"
+                 (change)="toggleRegion(r, $any($event.target).checked)" />
+          {{ r }}
+        </label>
+      }
+    </div>
+  </div>
+
+  <div class="filter-group">
+    <span class="label">Sectors</span>
+    <div class="chips">
+      @for (s of sectors(); track s) {
+        <label class="chip">
+          <input type="checkbox" [checked]="selectedSectors().includes(s)"
+                 (change)="toggleSector(s, $any($event.target).checked)" />
+          {{ s.replace('_', ' ') }}
+        </label>
+      }
+    </div>
+  </div>
+
+  <div class="filter-group">
+    <span class="label">Employees</span>
+    <div class="range">
+      <input type="number" min="0" [value]="minEmployees()"
+             (input)="minEmployees.set($any($event.target).valueAsNumber)" />
+      <span>–</span>
+      <input type="number" min="0" [value]="maxEmployees()"
+             (input)="maxEmployees.set($any($event.target).valueAsNumber)" />
+    </div>
+  </div>
+
+  <div class="filter-group toggles">
+    <label class="chip">
+      <input type="checkbox" [checked]="applySize()"
+             (change)="applySize.set($any($event.target).checked)" />
+      Size filter
+    </label>
+    <label class="chip">
+      <input type="checkbox" [checked]="applyFinancial()"
+             (change)="applyFinancial.set($any($event.target).checked)" />
+      Financial filter
+    </label>
+  </div>
+
+  <div class="actions">
+    <button class="apply" (click)="emit()">Apply</button>
+    <button class="reset" (click)="reset()">Reset</button>
+  </div>
+</section>

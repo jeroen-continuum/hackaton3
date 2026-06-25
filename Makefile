@@ -1,4 +1,4 @@
-.PHONY: db db-stop backend frontend seed dev
+.PHONY: db db-stop backend frontend seed load-kbo ingest dev
 
 db:
 	docker compose -f docker-compose.db.yml up -d
@@ -15,6 +15,14 @@ frontend:
 seed:
 	cd backend && source .venv/bin/activate && python -m app.db.seed
 
+# Load all active Belgian companies from the KBO dump (in backend/data/kbo/).
+load-kbo:
+	cd backend && source .venv/bin/activate && python -m app.db.load_kbo
+
+# Enrich + score the candidate pond and rank the Rolling 10.
+ingest:
+	cd backend && source .venv/bin/activate && python -m app.run_pipeline
+
 dev:
 	@echo "Run each in a separate terminal:"
 	@echo "  make db        # start postgres container"
@@ -22,6 +30,8 @@ dev:
 	@echo "  make frontend  # ng serve on :4200"
 	@echo ""
 	@echo "First time only:"
-	@echo "  cd backend && python -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt"
+	@echo "  cd backend && python3 -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt"
 	@echo "  cd frontend && npm install"
-	@echo "  make seed"
+	@echo "  make seed       # solution cases"
+	@echo "  make load-kbo   # all active BE companies (needs KBO dump in backend/data/kbo/)"
+	@echo "  make ingest     # enrich + score -> Rolling 10"

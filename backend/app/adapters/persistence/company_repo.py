@@ -27,6 +27,9 @@ class SqlModelCompanyRepository:
             existing.nace_code = profile.nace_code
             existing.sector = profile.sector
             existing.website = profile.website
+            existing.municipality = profile.municipality
+            existing.latitude = profile.latitude
+            existing.longitude = profile.longitude
             self._session.add(existing)
         else:
             company = _Company(
@@ -36,6 +39,9 @@ class SqlModelCompanyRepository:
                 nace_code=profile.nace_code,
                 sector=profile.sector,
                 website=profile.website,
+                municipality=profile.municipality,
+                latitude=profile.latitude,
+                longitude=profile.longitude,
             )
             self._session.add(company)
         self._session.commit()
@@ -108,6 +114,9 @@ class SqlModelCompanyRepository:
                 "region": c.region,
                 "nace_code": c.nace_code,
                 "website": c.website,
+                "municipality": c.municipality,
+                "latitude": c.latitude,
+                "longitude": c.longitude,
                 "rank": sc.rank,
                 "score": sc.total,
                 "breakdown": sc.breakdown,
