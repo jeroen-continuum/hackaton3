@@ -85,6 +85,9 @@ class FakeCompanyRepository:
         self._id_counter += 1
         return fake_id
 
+    def clear_scores(self) -> None:
+        self._scores = []
+
     def save_score(self, score: ScoreResult) -> None:
         self._scores.append(score)
 

@@ -35,6 +35,9 @@ class RunPipeline:
 
     def run(self) -> list[CompanyProfile]:
         """Run full pipeline. Returns scored + ranked top-10."""
+        # Clear prior scores so a re-run ranks only the current pond — otherwise
+        # stale scores (e.g. from before the area filter was applied) leak through.
+        self._repo.clear_scores()
         pond = self._source.load_pond()
         passing = []
         for profile in pond:

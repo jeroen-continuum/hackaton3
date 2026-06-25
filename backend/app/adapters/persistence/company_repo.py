@@ -52,6 +52,16 @@ class SqlModelCompanyRepository:
             self._session.refresh(company)
             return company.id
 
+    def clear_scores(self) -> None:
+        """Drop all scores so a re-run ranks only the current pond.
+
+        Without this, scores from a previous run (e.g. a wider pond, before the
+        area filter was applied) linger and leak into the ranked top-10.
+        """
+        for score in self._session.exec(select(_Score)).all():
+            self._session.delete(score)
+        self._session.commit()
+
     def save_score(self, score: ScoreResult) -> None:
         """Persist a score result — requires company_id in score.breakdown['_company_id']."""
         company_id = score.breakdown.get("_company_id")

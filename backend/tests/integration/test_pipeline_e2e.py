@@ -141,3 +141,20 @@ def test_pipeline_fewer_than_10(session):
     pipeline, repo = make_pipeline(session, companies)
     top10 = pipeline.run()
     assert len(top10) == 3
+
+
+def test_rerun_with_narrowed_pond_drops_stale_companies(session):
+    """A re-run (e.g. after applying the area filter) must not surface companies
+    that fell out of the new pond. Scores from the previous run are stale and
+    must not leak into the ranked top-10."""
+    wide = make_companies(12)
+    pipeline, repo = make_pipeline(session, wide)
+    pipeline.run()
+
+    # Re-run with a narrowed pond — only the first 3 companies survive the filter.
+    narrowed = wide[:3]
+    pipeline2, repo2 = make_pipeline(session, narrowed)
+    pipeline2.run()
+
+    names = {item["name"] for item in repo2.get_top10_with_scores()}
+    assert names == {c.name for c in narrowed}
