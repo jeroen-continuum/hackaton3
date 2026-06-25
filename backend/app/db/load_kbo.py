@@ -276,11 +276,18 @@ def _copy_companies(df: pd.DataFrame) -> None:
     clean = df.astype(object).where(df.notna(), None)
     raw = engine.raw_connection()
     try:
-        with raw.cursor() as cur, cur.copy(
-            f'COPY company ({", ".join(cols)}) FROM STDIN'
-        ) as copy:
-            for row in clean.itertuples(index=False, name=None):
-                copy.write_row(row)
+        with raw.cursor() as cur:
+            # Empty the table on the COPY's own connection, in the same txn as
+            # the COPY. _reset_pond_tables drops it on a *different* pooled
+            # connection, which this one may not yet see — appending onto those
+            # stale rows is what trips ix_company_enterprise_number. Truncating
+            # here makes the load idempotent and atomic regardless.
+            cur.execute("TRUNCATE company CASCADE")
+            with cur.copy(
+                f'COPY company ({", ".join(cols)}) FROM STDIN'
+            ) as copy:
+                for row in clean.itertuples(index=False, name=None):
+                    copy.write_row(row)
         raw.commit()
     finally:
         raw.close()
