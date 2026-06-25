@@ -33,6 +33,10 @@ class IcpFilter:
     # Toggles — disable the financial-data-dependent filters entirely.
     apply_size: bool = True
     apply_financial: bool = True
+    # Connection-based selection: keep only companies we have a warm tie to,
+    # and/or drop companies that are already clients (any CLIENT tie).
+    only_warm: bool = False
+    exclude_clients: bool = False
     # Area filter — keep only companies within `radius_km` of (center_lat, center_lon).
     # All None (the default) = no geographic restriction.
     center_lat: Optional[float] = None

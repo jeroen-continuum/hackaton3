@@ -11,7 +11,11 @@ from sqlmodel import Session, select
 from app.domain.filters import IcpFilter
 from app.domain.geo import bounding_box, haversine_km
 from app.domain.models import CompanyProfile
-from app.models.entities import Company as _Company, FinancialData as _FinData
+from app.models.entities import (
+    Company as _Company,
+    FinancialData as _FinData,
+    Connection as _Connection,
+)
 
 
 def apply_icp_filters(stmt, icp: IcpFilter):
@@ -45,6 +49,18 @@ def apply_icp_filters(stmt, icp: IcpFilter):
             _Company.longitude.is_not(None),
             _Company.latitude.between(lat_min, lat_max),
             _Company.longitude.between(lon_min, lon_max),
+        )
+
+    # Connection-based selection (subqueries — no extra round-trip). Applied at
+    # SELECTION time so the scored pond, the Rolling 10, and /stats all agree:
+    # post-filtering the top-10 instead would drop warm rows that rank below #10.
+    if icp.only_warm:
+        stmt = stmt.where(_Company.id.in_(select(_Connection.company_id)))
+    if icp.exclude_clients:
+        stmt = stmt.where(
+            _Company.id.not_in(
+                select(_Connection.company_id).where(_Connection.type == "CLIENT")
+            )
         )
     return stmt
 

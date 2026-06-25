@@ -262,6 +262,33 @@ def test_stats_matched_respects_exclude_clients(client_with_engine):
     assert no_clients == 1  # the client company is dropped
 
 
+def test_rank_matches_stats_with_only_warm_when_pond_limited(client_with_engine, monkeypatch):
+    """The warm company must be SELECTED into the pond, not just post-filtered out
+    of a top-10 built from lower-id non-warm companies. Otherwise /rank comes back
+    empty while /stats reports a match.
+    """
+    from app.core import config
+    monkeypatch.setattr(config.settings, "max_pond_enrich", 1)
+    client, engine = client_with_engine
+    with Session(engine) as s:
+        # Low id, qualifies on ICP/financials but is NOT warm.
+        _add_company_with_financials(s, "0100000001", "64190", 51.0, 3.7, 250, 9_500_000)
+        # Higher id, the only warm company.
+        _add_company_with_financials(s, "0100000002", "64200", 51.0, 3.7, 250, 9_500_000)
+    _add_connection(engine, "0100000002")
+
+    filters = {
+        "nace_include_prefixes": ["64"], "nace_exclude_prefixes": [],
+        "min_employees": 100, "max_employees": 500,
+        "apply_size": True, "apply_financial": True, "only_warm": True,
+    }
+    matched = client.post("/companies/stats", json=filters).json()["matched"]
+    ranked = client.post("/companies/rank", json=filters).json()
+    assert matched == 1
+    assert len(ranked) == matched
+    assert ranked[0]["enterprise_number"] == "0100000002"
+
+
 def test_density_aggregates_by_location(client_with_engine):
     client, engine = client_with_engine
     _seed_companies(engine)
